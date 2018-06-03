@@ -11,11 +11,11 @@
 #include <avr/io.h>
 
 
-#define IRQ 	PB2			//IRQ PIN
+#define IRQ 	PD2			//IRQ PIN
 
-#define IRQ_DDR_PORT DDRB	//direction port
-#define IRQ_PORT     PORTB	//output port
-#define IRQ_PIN      PINB	//input port
+#define IRQ_DDR_PORT DDRD	//direction port
+#define IRQ_PORT     PORTD	//output port
+#define IRQ_PIN      PIND	//input port
 
 
 #define NRF_DDR_PORT DDRC	//direction register of port which control nRF power

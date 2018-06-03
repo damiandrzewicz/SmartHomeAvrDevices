@@ -11,20 +11,6 @@
 
 #include "../uart/uart.h"
 
-//CDataParser *CDataParser::m_sInstance = nullptr;
-//bool CDataParser::m_bIsCreated = false;
-//
-//CDataParser *CDataParser::getInstance()
-//{
-//	if(!m_bIsCreated)
-//	{
-//		static CDataParser object;
-//		m_sInstance = &object;
-//		m_bIsCreated = true;
-//	}
-//	return m_sInstance;
-//}
-
 CDataParser::CDataParser() {
 	// TODO Auto-generated constructor stub
 
@@ -34,9 +20,8 @@ CDataParser::~CDataParser() {
 	// TODO Auto-generated destructor stub
 }
 
-int8_t CDataParser::parseData(char *data)
+CDataParser::ParseResult CDataParser::parseData(char *data)
 {
-
 	//Reset pos
 	resetPos();
 
@@ -45,40 +30,34 @@ int8_t CDataParser::parseData(char *data)
 
 	//Check data object
 	if(data == nullptr)
-		return -1;
+		return ParseResult::NullDataPointer;
 	else if(len == 0)
-		return -2;
+		return ParseResult::EmptyDataPointer;
 
 	//Check first character
 	if(data[0] != '@')
-		return -3;
+		return ParseResult::BadFirstChar;
 
 	//Check last character
 	if(data[len-1] != '@')
-		return -4;
-
-	//Dummy value
-	//strtok(data, "@");
+		return ParseResult::BadLastChar;
 
 	//Get request
 	m_buffer[0] = strtok(data, "@");
 	if(strcmp(m_buffer[0], "") == 0)
-		return -5;
+		return ParseResult::EmptyRequest;
 
 	//Get operation
 	m_buffer[1] = strtok(NULL, "@");
 	if(strcmp(m_buffer[1], "") == 0)
-		return -6;
-
+		return ParseResult::EmptyOperation;
 
 	//Get value
 	m_buffer[2] = strtok(NULL, "@");
 	if(strcmp(m_buffer[2], "") == 0)
-		return -7;
+		return ParseResult::EmptyValue;
 
-
-	return 1;
-
+	return ParseResult::Ok;
 }
 
 void CDataParser::cleanBuffer()

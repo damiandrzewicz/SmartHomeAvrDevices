@@ -9,6 +9,7 @@
 #define CONTROLLER_CONTROLLER_H_
 
 #include <avr/io.h>
+#include "../dataParser/dataParser.h"
 
 void uartCallback(char *data);
 void timerCallback();
@@ -17,10 +18,11 @@ void nrfCallback(void * nRF_RX_buff , uint8_t len );
 class CController {
 public:
 
-	enum class ErrorGenre{
-		NoError,
+	enum class ErrorType{
+		Timeout = CDataParser::ParseResult::Ok,
 		General,
-		OperationSpecified
+		OperationSpecified,
+		Ok
 	};
 
 	static CController *getInstance();
@@ -28,7 +30,12 @@ public:
 	void setOperationName(char *op);
 	char *getOperationName();
 
-	void setErrorGenre(ErrorGenre err);
+//	void setErrorGenre(ErrorType err);
+//	bool isError();
+
+	void resetError();
+	void setError(ErrorType err);
+	void setError(int8_t err);
 	bool isError();
 
 	void setRequestInBufferReady(bool val);
@@ -58,7 +65,7 @@ public:
 
 	char *getBufferAddress();
 
-	void prepareErrorNumber(int8_t err);
+	//void prepareErrorNumber(int8_t err);
 
 	void procesSetReceiverAddress();
 	void processSendData();
@@ -89,16 +96,11 @@ private:
 	char *m_sOperationName;
 	char m_dataBuffer[m_sBufferSize];
 
+	//ErrorType m_nErrorNo = ErrorType::Ok;
+	int8_t m_nErrorNo;
 
 	//********Flags*********
-
-	/*
-	 * Error flag
-	 * 0 - no error
-	 * 1 - general error
-	 * 2 - operation specified
-	 */
-	ErrorGenre m_bErrorGenre = ErrorGenre::NoError;
+	//ErrorType m_bErrorGenre = ErrorType::NoError;
 	bool m_bRequestInBufferReady = false;
 	bool m_bRequestProcessReady = false;
 	bool m_bWaitingForRadioResponse = false;

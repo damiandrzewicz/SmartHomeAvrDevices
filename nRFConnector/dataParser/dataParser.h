@@ -12,9 +12,19 @@
 
 class CDataParser {
 public:
-	//static CDataParser *getInstance();
+	enum class ParseResult
+	{
+		NullDataPointer,
+		EmptyDataPointer,
+		BadFirstChar,
+		BadLastChar,
+		EmptyRequest,
+		EmptyOperation,
+		EmptyValue,
+		Ok
+	};
 
-	int8_t parseData(char *data);
+	ParseResult parseData(char *data);
 	char *getNextToken();
 	void cleanBuffer();
 
@@ -29,11 +39,7 @@ private:
 	void resetPos();
 
 private:
-	static CDataParser * m_sInstance;
-	static bool m_bIsCreated;
-
 	static const uint8_t m_sBufferRows = 3;
-
 	char *m_buffer[m_sBufferRows] = {};
 	uint8_t m_nPos = 0;
 };
