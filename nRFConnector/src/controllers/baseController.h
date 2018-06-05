@@ -31,7 +31,7 @@ public:
 	};
 
 	//Constructor needs to be override for specify returned type
-	virtual static CBaseController *getInstance() ;
+	virtual CBaseController *getInstance() ;
 
 	//Common interface
 	void setOperationName(char *op);
@@ -60,8 +60,8 @@ public:
 	void stopTimer();
 	void resetTimerValue();
 
-	virtual static void uartCallback(char *data);
-	virtual static void timerCallback();
+	virtual void uartCallback(char *data);
+	virtual void timerCallback();
 };
 
 #endif /* CONTROLLERS_BASECONTROLLER_H_ */
