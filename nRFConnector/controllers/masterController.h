@@ -5,8 +5,8 @@
  *      Author: damian
  */
 
-#ifndef CONTROLLER_CONTROLLER_H_
-#define CONTROLLER_CONTROLLER_H_
+#ifndef CONTROLLERS_MASTERCONTROLLER_H_
+#define CONTROLLERS_MASTERCONTROLLER_H_
 
 #include <avr/io.h>
 #include "../dataParser/dataParser.h"
@@ -19,7 +19,8 @@ class CController {
 public:
 
 	enum class ErrorType{
-		Timeout = CDataParser::ParseResult::Ok,
+		Dummy = CDataParser::ParseResult::Ok,
+		Timeout,
 		General,
 		OperationSpecified,
 		Ok
@@ -30,14 +31,10 @@ public:
 	void setOperationName(char *op);
 	char *getOperationName();
 
-//	void setErrorGenre(ErrorType err);
-//	bool isError();
+	void setRadioDataReceived(bool val);
+	bool isRadioDataReceived();
 
-	void resetError();
-	void setError(ErrorType err);
-	void setError(int8_t err);
-	bool isError();
-
+#ifdef IS_MASTER
 	void setRequestInBufferReady(bool val);
 	bool isRequestInBufferReady();
 
@@ -47,11 +44,23 @@ public:
 	void setWaitingForRadioResponse(bool val);
 	bool isWaitingForRadioResponse();
 
-	void setRadioDataReceived(bool val);
-	bool isRadioDataReceived();
+
 
 	void setReadyForProcessResponse(bool val);
 	bool isReadyForProcessResponse();
+
+	void procesSetReceiverAddress();
+#else
+
+#endif
+
+
+	void processSendData();
+
+	void resetError();
+	void setError(ErrorType err);
+	void setError(int8_t err);
+	bool isError();
 
 	void incrementtimerTick();
 
@@ -63,12 +72,8 @@ public:
 	void stopTimer();
 	void resetTimerValue();
 
-	char *getBufferAddress();
-
-	//void prepareErrorNumber(int8_t err);
-
-	void procesSetReceiverAddress();
-	void processSendData();
+	char *getBufferPtr();
+	void setMessageInBuffer(char *msg);
 
 	void controllerEvent();
 
@@ -78,12 +83,10 @@ public:
 
 private:
 	//Cnstructors
-	CController();	//Prevent consttuction but allow in getInstance
-	CController(const CController&);	//Prevent construction by copying
+	CController();								//Prevent consttuction but allow in getInstance
+	CController(const CController&);			//Prevent construction by copying
 	CController& operator=(const CController&);	//Prevent assigment
-	~CController();					//Prevent unwanted destruction
-
-
+	~CController();								//Prevent unwanted destruction
 
 private:
 	static const uint8_t m_sBufferSize = 32;
@@ -100,15 +103,20 @@ private:
 	int8_t m_nErrorNo;
 
 	//********Flags*********
-	//ErrorType m_bErrorGenre = ErrorType::NoError;
+	bool m_bRadioDataReceived = false;
+
+#ifdef IS_MASTER
 	bool m_bRequestInBufferReady = false;
 	bool m_bRequestProcessReady = false;
 	bool m_bWaitingForRadioResponse = false;
-	bool m_bRadioDataReceived = false;
+
 	bool m_bReadyForProcessResponse = false;
+#else
+
+#endif
 
 };
 
 
 
-#endif /* CONTROLLER_CONTROLLER_H_ */
+#endif /* CONTROLLERS_MASTERCONTROLLER_H_ */

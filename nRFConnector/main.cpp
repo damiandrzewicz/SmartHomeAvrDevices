@@ -6,37 +6,39 @@
  */
 
 #include <avr/io.h>
+#include <util/delay.h>
 
+#include "controllers/masterController.h"
 #include "nrf/nrf.h"
 #include "nrf/nRF24L01_memory_map.h"
 #include "spi/SPI.h"
 #include "uart/uart.h"
 #include "dataParser/dataParser.h"
 #include "timer/timer.h"
-#include "controller/controller.h"
 #include "portability.h"
 
+//bool bflag = false;
+//
 //void tick()
 //{
+//	//CUart *uart = CUart::getInstance();
+//	//uart->puts("test\n\r");
 //
-//	PORTC ^= (1 << PC5);
-//	send = true;
-//	if(value == 0)
-//	{
-//		value = 1;
-//	}
-//	else if(value == 1)
-//	{
-//		value = 0;
-//	}
+////	DDRD |= (1 << PD4);
+////	PORTD &= ~(1 << PD4);
+//
+//	PORTC ^= (1 << PC0);
+//	bflag = true;
+//
+//	//CUart::getInstance()->puts("dmaian\n\r");
 //}
 
 
 
 int main()
 {
-	DDRC |= (1 << PC5);
-	PORTC &= ~(1 << PC5);
+	DDRC |= (1 << PC0);
+	//PORTC &= ~(1 << PC5);
 
 	const uint8_t nDeviceAddress = 0x01;
 
@@ -70,17 +72,25 @@ int main()
 	CController *controller = CController::getInstance();
 
 	//Initialise timer
-	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 155);
+	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 77);
 	timer2->Assign(controller->getTimerHandle(), 0, timerCallback, false);
-	//timer2->Assign(1, 100, tick, true);
+	//timer2->Assign(1, 50, tick, true);
 
 
    	//Allow for interrupts
     sei();
 
-
 	while(1)
 	{
+
+//		if(bflag)
+//		{
+//			CUart::getInstance()->puts("dmaian\n\r");
+//			bflag = false;
+//		}
+
+		//CUart::getInstance()->puts("dmaian\n\r");
+		//_delay_ms(500);
 		//Uart event
 		uart->RX_STR_EVENT();
 		nrf->RX_EVENT();

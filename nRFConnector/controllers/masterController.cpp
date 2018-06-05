@@ -5,9 +5,9 @@
  *      Author: damian
  */
 
-#include <string.h>
-#include "controller.h"
+#include "masterController.h"
 
+#include <string.h>
 #include "../nrf/nrf.h"
 #include "../nrf/nRF24L01_memory_map.h"
 #include "../uart/uart.h"
@@ -61,7 +61,7 @@ void CController::setError(int8_t err)
 	m_nErrorNo = static_cast<int8_t>(err);
 	char valBuff[5];
 	itoa(static_cast<int8_t>(m_nErrorNo), valBuff, 10);
-	strcpy(getBufferAddress(), valBuff);
+	strcpy(getBufferPtr(), valBuff);
 }
 
 bool CController::isError()
@@ -70,6 +70,7 @@ bool CController::isError()
 	return (m_nErrorNo != nOk);
 }
 
+#ifdef IS_MASTER
 void CController::setRequestInBufferReady(bool val)
 {
 	m_bRequestInBufferReady = val;
@@ -100,16 +101,6 @@ bool CController::isWaitingForRadioResponse()
 	return m_bWaitingForRadioResponse;
 }
 
-void CController::setRadioDataReceived(bool val)
-{
-	m_bRadioDataReceived = val;
-}
-
-bool CController::isRadioDataReceived()
-{
-	return m_bRadioDataReceived;
-}
-
 void CController::setReadyForProcessResponse(bool val)
 {
 	m_bReadyForProcessResponse = val;
@@ -118,6 +109,19 @@ void CController::setReadyForProcessResponse(bool val)
 bool CController::isReadyForProcessResponse()
 {
 	return m_bReadyForProcessResponse;
+}
+#else
+
+#endif
+
+void CController::setRadioDataReceived(bool val)
+{
+	m_bRadioDataReceived = val;
+}
+
+bool CController::isRadioDataReceived()
+{
+	return m_bRadioDataReceived;
 }
 
 uint8_t CController::getTimerHandle() const
@@ -146,9 +150,14 @@ void CController::incrementtimerTick()
 	m_nTimerValue++;
 }
 
-char *CController::getBufferAddress()
+char *CController::getBufferPtr()
 {
 	return m_dataBuffer;
+}
+
+void CController::setMessageInBuffer(char *msg)
+{
+	strcpy(CController::getInstance()->getBufferPtr(), msg);
 }
 
 bool CController::isTimeout()
@@ -163,7 +172,7 @@ void CController::procesSetReceiverAddress()
 {
 	CNrf::getInstance()->setTransmitterAdres(m_dataBuffer);
 	CNrf::getInstance()->setReciverAddres(RX_ADDR_P0, m_dataBuffer);
-	PORTC ^= (1 << PC5);
+	//PORTC ^= (1 << PC5);
 }
 
 void CController::processSendData()
@@ -176,6 +185,7 @@ void CController::processSendData()
 
 void CController::controllerEvent()
 {
+#ifdef IS_MASTER
 	if(isRequestInBufferReady())
 	{
 		if(strcmp(getOperationName(), "setReceiverAddress") == 0)
@@ -252,9 +262,19 @@ void CController::controllerEvent()
 		setReadyForProcessResponse(false);
 
 		//Reset error if occured
-		resetError();
+		if(isError())
+		{
+			resetError();
+		}
 	}
-
+#else
+	if(isRadioDataReceived())
+	{
+		CUart::getInstance()->puts(m_dataBuffer);		//Send response by UART
+		CUart::getInstance()->puts("\r\n");				//Terminate response
+		setRadioDataReceived(false);
+	}
+#endif
 }
 
 //Callbacks
@@ -267,6 +287,7 @@ void uartCallback(char *data)
 	if(result != CDataParser::ParseResult::Ok)
 	{
 		CController::getInstance()->setError(static_cast<int8_t>(result));
+
 		CController::getInstance()->setReadyForProcessResponse(true);
 		return;
 	}
@@ -291,7 +312,7 @@ void uartCallback(char *data)
 		strcpy(newAddr, "x");
 		strcat(newAddr, cValue);
 
-		strcpy(CController::getInstance()->getBufferAddress(), newAddr);
+		CController::getInstance()->setMessageInBuffer(newAddr);
 		CController::getInstance()->setRequestInBufferReady(true);
 	}
 	//Process send data to air
@@ -300,14 +321,14 @@ void uartCallback(char *data)
 		//Get message
 		char *cMessage = parser.getNextToken();
 
-		strcpy(CController::getInstance()->getBufferAddress(), cMessage);
+		CController::getInstance()->setMessageInBuffer(cMessage);
 		CController::getInstance()->setRequestInBufferReady(true);
 	}
 }
 
 void nrfCallback(void * nRF_RX_buff , uint8_t len )
 {
-	strcpy(CController::getInstance()->getBufferAddress(), static_cast<char*>(nRF_RX_buff));
+	CController::getInstance()->setMessageInBuffer(static_cast<char*>(nRF_RX_buff));
 	CController::getInstance()->setRadioDataReceived(true);
 }
 
