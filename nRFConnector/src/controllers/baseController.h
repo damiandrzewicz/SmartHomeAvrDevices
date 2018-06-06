@@ -11,15 +11,23 @@
 #include <avr/io.h>
 #include "../dataParser/dataParser.h"
 
-//Friend functions - wrappers for specialised methods
-void uartCallback(char *data);
-void timerCallback();
-void nrfCallback(void * nRF_RX_buff , uint8_t len );
 
+
+template<typename T>
 class CBaseController {
+protected:
+	CBaseController();							//Prevent consttuction but allow in getInstance
+	CBaseController(const CBaseController&) = delete;			//Prevent construction by copying
+	CBaseController& operator=(const CBaseController&) = delete;	//Prevent assigment
+	virtual ~CBaseController();							//Prevent unwanted destruction
+
 public:
-	CBaseController();
-	virtual ~CBaseController();
+	//Get instance
+	static T *getInstance()
+	{
+		static T instance;
+		return &instance;
+	}
 
 	//Error types
 	enum class ErrorType{
@@ -29,9 +37,6 @@ public:
 		OperationSpecified,
 		Ok
 	};
-
-	//Constructor needs to be override for specify returned type
-	virtual CBaseController *getInstance() ;
 
 	//Common interface
 	void setOperationName(char *op);
@@ -43,8 +48,7 @@ public:
 	//Nrf interface
 	void setRadioDataReceived(bool val);
 	bool isRadioDataReceived();
-
-	void processSendData();
+	virtual void processSendData();
 
 	//Error handling
 	void resetError();
@@ -60,8 +64,29 @@ public:
 	void stopTimer();
 	void resetTimerValue();
 
+	//Callbacks
 	virtual void uartCallback(char *data);
 	virtual void timerCallback();
+	virtual void nrfCallback(void * nRF_RX_buff , uint8_t len );
+
+	virtual void controllerEvent() = 0;
+
+private:
+
+	static const uint8_t m_sBufferSize = 32;
+	static const uint16_t m_sTimeout = 100;			//Timeout 500ms
+	static const uint8_t m_sTimerHandle = 0;
+
+	volatile uint16_t m_nTimerValue = 0;
+	char *m_sOperationName = nullptr;
+	char m_dataBuffer[m_sBufferSize];
+
+	int8_t m_nErrorNo;
+
+	//********Flags*********
+	bool m_bRadioDataReceived = false;
 };
+
+#include "baseController.cpp"
 
 #endif /* CONTROLLERS_BASECONTROLLER_H_ */

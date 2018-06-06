@@ -13,6 +13,276 @@
 #include "../uart/uart.h"
 #include "../timer/timer.h"
 
+CMasterController::CMasterController()
+{
+}
+
+CMasterController::~CMasterController()
+{
+}
+
+void CMasterController::setRequestInBufferReady(bool val)
+{
+	m_bRequestInBufferReady = val;
+}
+
+bool CMasterController::isRequestInBufferReady()
+{
+	return m_bRequestInBufferReady;
+}
+
+void CMasterController::setRequestProcessReady(bool val)
+{
+	m_bRequestProcessReady = val;
+}
+
+bool CMasterController::isRequestProcessReady()
+{
+	return m_bRequestProcessReady;
+}
+
+void CMasterController::setWaitingForRadioResponse(bool val)
+{
+	m_bWaitingForRadioResponse = val;
+}
+
+bool CMasterController::isWaitingForRadioResponse()
+{
+	return m_bWaitingForRadioResponse;
+}
+
+void CMasterController::setReadyForProcessResponse(bool val)
+{
+	m_bReadyForProcessResponse = val;
+}
+
+bool CMasterController::isReadyForProcessResponse()
+{
+	return m_bReadyForProcessResponse;
+}
+
+void CMasterController::procesSetReceiverAddress()
+{
+	CNrf::getInstance()->setTransmitterAdres(getBufferPtr());
+	CNrf::getInstance()->setReciverAddres(RX_ADDR_P0, getBufferPtr());
+}
+
+void CMasterController::processSendData()
+{
+	CNrf::getInstance()->sendDataToAir(getBufferPtr());
+	setWaitingForRadioResponse(true);
+	startTimer();
+}
+
+void CMasterController::controllerEvent()
+{
+	if(isRequestInBufferReady())
+		{
+			if(strcmp(getOperationName(), "setReceiverAddress") == 0)
+			{
+				//Process "setReceiverAddress" message
+				procesSetReceiverAddress();
+				setReadyForProcessResponse(true);
+			}
+			else if(strcmp(getOperationName(), "sendData") == 0)
+			{
+				//Process "sendData" message
+				processSendData();
+			}
+			//CUart::getInstance()->puts(" response ready\n\r");
+			setRequestInBufferReady(false);
+		}
+
+		if(isWaitingForRadioResponse())
+		{
+			//CUart::getInstance()->putint(m_nTimerValue, 10);
+
+			if(isRadioDataReceived())
+			{
+				stopTimer();
+				setRadioDataReceived(false);
+				setWaitingForRadioResponse(false);
+
+				setReadyForProcessResponse(true);
+			}
+			else if(isTimeout())
+			{
+
+				stopTimer();
+				setError(ErrorType::Timeout);
+
+				setRadioDataReceived(false);
+				setWaitingForRadioResponse(false);
+
+				setReadyForProcessResponse(true);
+				//CUart::getInstance()->puts("response ready\n\r");
+			}
+		}
+
+		if(isReadyForProcessResponse())
+		{
+			//Prepare response
+			char response[100];
+			strcpy(response, "@response");
+
+			//Check if Error occured
+			if(isError())
+			{
+				strcat(response, "@err@");
+			}
+			else
+			{
+				strcat(response, "@ok@");
+			}
+
+			//Add info data
+			strcat(response, getBufferPtr());
+
+
+			if(strcmp(getOperationName(), "") != 0)
+			{
+				strcat(response, "@");
+				strcat(response, getOperationName());
+			}
+
+			strcat(response, "@");
+
+			CUart::getInstance()->puts(response);			//Send response by UART
+			CUart::getInstance()->puts("\r\n");				//Terminate response
+
+			//Reset ready for response state
+			setReadyForProcessResponse(false);
+
+			//Reset error if occured
+			//if(isError())
+			//{
+				resetError();
+			//}
+		}
+}
+
+//Callbacks
+void CMasterController::uartCallback(char *data)
+{
+	//Message received, process it
+	CDataParser parser;
+	CDataParser::ParseResult result = parser.parseData(data);
+
+	if(result != CDataParser::ParseResult::Ok)
+	{
+		setError(static_cast<int8_t>(result));
+
+		setReadyForProcessResponse(true);
+		return;
+	}
+
+	char *cRequest = parser.getNextToken();
+
+	if(strcmp(cRequest, "request") != 0)
+	{
+		setError(CMasterController::ErrorType::General);
+		setReadyForProcessResponse(true);
+		return;
+	}
+
+	setOperationName(parser.getNextToken());
+
+	//Process set receiver address operation
+	if(strcmp(getOperationName(), "setReceiverAddress") == 0)
+	{
+		//Get value
+		char *cValue = parser.getNextToken();
+		char newAddr[6];
+		strcpy(newAddr, "x");
+		strcat(newAddr, cValue);
+
+		setMessageInBuffer(newAddr);
+		setRequestInBufferReady(true);
+	}
+	//Process send data to air
+	else if(strcmp(getOperationName(), "sendData") == 0)
+	{
+		//Get message
+		char *cMessage = parser.getNextToken();
+
+		setMessageInBuffer(cMessage);
+		setRequestInBufferReady(true);
+	}
+
+}
+
+void CMasterController::timerCallback()
+{
+	incrementtimerTick();
+}
+
+void CMasterController::nrfCallback(void * nRF_RX_buff , uint8_t len )
+{
+	setMessageInBuffer(static_cast<char*>(nRF_RX_buff));
+	setRadioDataReceived(true);
+}
+
+
+//void uartCallback(char *data)
+//{
+//	//Message received, process it
+//	CDataParser parser;
+//	CDataParser::ParseResult result = parser.parseData(data);
+//
+//	if(result != CDataParser::ParseResult::Ok)
+//	{
+//		CMasterController::getInstance()->setError(static_cast<int8_t>(result));
+//
+//		CMasterController::getInstance()->setReadyForProcessResponse(true);
+//		return;
+//	}
+//
+//	char *cRequest = parser.getNextToken();
+//
+//	if(strcmp(cRequest, "request") != 0)
+//	{
+//		CMasterController::getInstance()->setError(CMasterController::ErrorType::General);
+//		CMasterController::getInstance()->setReadyForProcessResponse(true);
+//		return;
+//	}
+//
+//	CMasterController::getInstance()->setOperationName(parser.getNextToken());
+//
+//	//Process set receiver address operation
+//	if(strcmp(CMasterController::getInstance()->getOperationName(), "setReceiverAddress") == 0)
+//	{
+//		//Get value
+//		char *cValue = parser.getNextToken();
+//		char newAddr[6];
+//		strcpy(newAddr, "x");
+//		strcat(newAddr, cValue);
+//
+//		CMasterController::getInstance()->setMessageInBuffer(newAddr);
+//		CMasterController::getInstance()->setRequestInBufferReady(true);
+//	}
+//	//Process send data to air
+//	else if(strcmp(CMasterController::getInstance()->getOperationName(), "sendData") == 0)
+//	{
+//		//Get message
+//		char *cMessage = parser.getNextToken();
+//
+//		CMasterController::getInstance()->setMessageInBuffer(cMessage);
+//		CMasterController::getInstance()->setRequestInBufferReady(true);
+//	}
+//}
+//
+//void timerCallback()
+//{
+//	CMasterController::getInstance()->incrementtimerTick();
+//}
+//
+//void nrfCallback(void * nRF_RX_buff , uint8_t len )
+//{
+//	CMasterController::getInstance()->setMessageInBuffer(static_cast<char*>(nRF_RX_buff));
+//	CMasterController::getInstance()->setRadioDataReceived(true);
+//}
+
+/*
 CController *CController::m_sInstance = nullptr;
 bool CController::m_bIsCreated = false;
 
@@ -336,5 +606,5 @@ void timerCallback()
 {
 	CController::getInstance()->incrementtimerTick();
 }
-
+*/
 
