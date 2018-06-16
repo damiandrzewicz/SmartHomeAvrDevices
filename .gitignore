@@ -40,8 +40,6 @@ Release/
 # BlindDriverOld section
 BlindDriverOld
 
-# WindowDriverSection
-WindowDriver
 
 # Test projects
 atmega8Test

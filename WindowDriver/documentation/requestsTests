@@ -1,0 +1,12 @@
+@stm@#req#(sayHello!ale!to!bedzie!dlugi!string#!#danymi)#@
+
+@stm@#req#(sayHello)#@
+
+@stm@#req#(getBlindType!1)#@
+
+@stm@#req#(setBlindType!1!0)#@
+
+@stm@#req#(getBlindState!1)#@
+
+@stm@#req#(setBlindState!1!0!75!55!1!1)#@
+
