@@ -66,8 +66,8 @@ public:
 
 	//Callbacks
 	virtual void uartCallback(char *data);
-	virtual void timerCallback();
-	virtual void nrfCallback(void * nRF_RX_buff , uint8_t len );
+	void timerCallback();
+	void nrfCallback(void * nRF_RX_buff , uint8_t len );
 
 	virtual void controllerEvent() = 0;
 

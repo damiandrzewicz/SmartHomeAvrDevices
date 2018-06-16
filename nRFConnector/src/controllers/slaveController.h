@@ -29,8 +29,7 @@ public:
 
 	//Callbacks
 	void uartCallback(char *data) override;
-	void timerCallback() override;
-	void nrfCallback(void * nRF_RX_buff , uint8_t len ) override;
+	//void timerCallback() override;
 
 	void controllerEvent() override;
 };

@@ -74,6 +74,33 @@ void CMasterController::processSendData()
 	startTimer();
 }
 
+void CMasterController::prepareResponseMsgFromBuffer(char *buff)
+{
+	strcpy(buff, "@response");
+
+	//Check if Error occured
+	if(isError())
+	{
+		strcat(buff, "@err@");
+	}
+	else
+	{
+		strcat(buff, "@ok@");
+	}
+
+	//Add info data
+	strcat(buff, getBufferPtr());
+
+
+	if(strcmp(getOperationName(), "") != 0)
+	{
+		strcat(buff, "@");
+		strcat(buff, getOperationName());
+	}
+
+	strcat(buff, "@");
+}
+
 void CMasterController::controllerEvent()
 {
 	if(isRequestInBufferReady())
@@ -123,41 +150,19 @@ void CMasterController::controllerEvent()
 		{
 			//Prepare response
 			char response[100];
-			strcpy(response, "@response");
-
-			//Check if Error occured
-			if(isError())
-			{
-				strcat(response, "@err@");
-			}
-			else
-			{
-				strcat(response, "@ok@");
-			}
-
-			//Add info data
-			strcat(response, getBufferPtr());
-
-
-			if(strcmp(getOperationName(), "") != 0)
-			{
-				strcat(response, "@");
-				strcat(response, getOperationName());
-			}
-
-			strcat(response, "@");
+			prepareResponseMsgFromBuffer(response);
 
 			CUart::getInstance()->puts(response);			//Send response by UART
-			CUart::getInstance()->puts("\r\n");				//Terminate response
+			CUart::getInstance()->puts("\r");				//Terminate response
 
 			//Reset ready for response state
 			setReadyForProcessResponse(false);
 
 			//Reset error if occured
-			//if(isError())
-			//{
+			if(isError())
+			{
 				resetError();
-			//}
+			}
 		}
 }
 
@@ -211,16 +216,6 @@ void CMasterController::uartCallback(char *data)
 
 }
 
-void CMasterController::timerCallback()
-{
-	incrementtimerTick();
-}
-
-void CMasterController::nrfCallback(void * nRF_RX_buff , uint8_t len )
-{
-	setMessageInBuffer(static_cast<char*>(nRF_RX_buff));
-	setRadioDataReceived(true);
-}
 
 
 //void uartCallback(char *data)

@@ -8,10 +8,35 @@
 #ifndef SRC_CONTROLLERS_STANDALONECONTROLLER_H_
 #define SRC_CONTROLLERS_STANDALONECONTROLLER_H_
 
-class CStandaloneController {
-public:
+#include "baseController.h"
+#include "../dataParser/dataParser.h"
+
+class CStandaloneController : public CBaseController<CStandaloneController>
+{
+	friend class CBaseController<CStandaloneController>;
+private:
 	CStandaloneController();
-	virtual ~CStandaloneController();
+	CStandaloneController(const CStandaloneController&) = delete;
+	CStandaloneController &operator=(const CStandaloneController&) = delete;
+	~CStandaloneController();
+
+public:
+	void processSendData() override;
+	void prepareResponseMsgFromBuffer(char *buff);
+
+	void setRequestInBufferReady(bool val);
+	bool isRequestInBufferReady();
+
+	void setReadyForProcessResponse(bool val);
+	bool isReadyForProcessResponse();
+
+	//Callbacks
+	void uartCallback(char *data) override;
+	void controllerEvent() override;
+
+private:
+	bool m_bRequestInBufferReady = false;
+	bool m_bReadyForProcessResponse = false;
 };
 
 #endif /* SRC_CONTROLLERS_STANDALONECONTROLLER_H_ */

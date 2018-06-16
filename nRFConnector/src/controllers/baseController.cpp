@@ -137,5 +137,24 @@ bool CBaseController<T>::isTimeout()
 	else
 		return false;
 }
+//template <typename T>
+//void CBaseController<T>::processSendData()
+//{
+//	CNrf::getInstance()->sendDataToAir(getBufferPtr());
+//	startTimer();
+//}
+
+template <typename T>
+void CBaseController<T>::timerCallback()
+{
+	incrementtimerTick();
+}
+
+template <typename T>
+void CBaseController<T>::nrfCallback(void * nRF_RX_buff , uint8_t len )
+{
+	setMessageInBuffer(static_cast<char*>(nRF_RX_buff));
+	setRadioDataReceived(true);
+}
 
 #endif
