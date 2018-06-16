@@ -1,30 +1,34 @@
 /*
- * CDataParser.h
+ * dataParser.h
  *
- *  Created on: Apr 7, 2018
+ *  Created on: Jun 14, 2018
  *      Author: damian
  */
 
-#ifndef CDATAPARSER_H_
-#define CDATAPARSER_H_
+#ifndef SRC_PARSER_DATAPARSER_H_
+#define SRC_PARSER_DATAPARSER_H_
 
 #include <avr/io.h>
 
+
+enum class ParseResult
+{
+	NullDataPointer,
+	EmptyDataPointer,
+	BadFirstChar,
+	BadLastChar,
+	EmptyRequest,
+	EmptyValue,
+	BadRequest,
+	Ok
+};
+
 class CDataParser {
 public:
-	enum class ParseResult
-	{
-		NullDataPointer,
-		EmptyDataPointer,
-		BadFirstChar,
-		BadLastChar,
-		EmptyRequest,
-		EmptyOperation,
-		EmptyValue,
-		Ok
-	};
 
-	ParseResult parseData(char *data);
+
+	ParseResult checkTrimmingChars(char *data, char delim1 = ' ', char delim2 = '\0');
+	ParseResult parseData(char *data, const char *delim = " ");
 	char *getNextToken();
 	void cleanBuffer();
 
@@ -39,9 +43,9 @@ private:
 	void resetPos();
 
 private:
-	static const uint8_t m_sBufferRows = 3;
-	char *m_buffer[m_sBufferRows] = {};
+	static const uint8_t m_sBufferRows = 20;
+	char m_buffer[m_sBufferRows][18] ;
 	uint8_t m_nPos = 0;
 };
 
-#endif /* CDATAPARSER_H_ */
+#endif /* SRC_PARSER_DATAPARSER_H_ */

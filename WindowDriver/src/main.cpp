@@ -15,6 +15,7 @@
 #include "servo/servo.h"
 #include "encoders/quadratureEncoder.h"
 #include "parser/uartParser.h"
+#include "controllers/servoController.h"
 
 #include "uart/uart.h"
 
@@ -105,6 +106,14 @@ int main()
 	CUartParser *uartParser = CUartParser::getInstance();	//Create uart parser
 	uartParser->registerServo(&servo1, &servo2);
 
+	/*
+	 * ******************
+	 * Servo Controllers
+	 * ******************
+	 */
+	CServoController controllerServo1(&servo1, &encoderForServo1);
+	CServoController controllerServo2(&servo2, &encoderForServo2);
+
 
 	sei();
 
@@ -121,6 +130,10 @@ int main()
 
 		//Uart parser event
 		uartParser->event();
+
+		//Servo events
+		controllerServo1.event();
+		controllerServo2.event();
 
 		//_delay_ms(1000);
 

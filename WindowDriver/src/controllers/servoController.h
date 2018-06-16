@@ -9,19 +9,21 @@
 #define SRC_CONTROLLERS_SERVOCONTROLLER_H_
 
 #include "../servo/servo.h"
+#include "../encoders/quadratureEncoder.h"
 
 class CServoController {
 public:
-	CServoController();
+	CServoController(CServo *ptr, CQuadratureEncoder *encoder);
 	~CServoController();
 
 	//Setters
-	void registerServo(CServo *ptr);
+	//void registerServo();
 
-	void controllerEvent();
+	void event();
 
 private:
 	CServo *m_servo = nullptr;
+	CQuadratureEncoder *m_encoder = nullptr;
 };
 
 #endif /* SRC_CONTROLLERS_SERVOCONTROLLER_H_ */

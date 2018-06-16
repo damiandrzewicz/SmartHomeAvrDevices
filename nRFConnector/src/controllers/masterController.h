@@ -43,7 +43,7 @@ public:
 	void prepareResponseMsgFromBuffer(char *buff);
 
 	//Callbacks
-	void uartCallback(char *data) override;
+	void uartCallback(char *data);
 	//void timerCallback() override;
 
 

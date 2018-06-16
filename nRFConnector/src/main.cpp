@@ -9,11 +9,11 @@
 #include <util/delay.h>
 
 #include "settings.h"
-#if MODE == 0
+#if NRF_MODE == 0
 #include "controllers/standaloneController.h"
-#elif MODE == 1
+#elif NRF_MODE == 1
 #include "controllers/masterController.h"
-#elif MODE == 2
+#elif NRF_MODE == 2
 #include "controllers/slaveController.h"
 #endif
 
@@ -46,6 +46,16 @@ void tick()
 void uartCallback(char *data);
 void timerCallback();
 void nrfCallback(void * nRF_RX_buff , uint8_t len );
+
+//Global objects
+//Get controller instance and initialise
+#if NRF_MODE == 0
+CBaseController<CStandaloneController> *controller = CBaseController<CStandaloneController>::getInstance();
+#elif NRF_MODE == 1
+CBaseController<CMasterController> *controller = CBaseController<CMasterController>::getInstance();
+#elif NRF_MODE == 2
+CBaseController<CSlaveController> *controller = CBaseController<CSlaveController>::getInstance();
+#endif
 
 int main()
 {
@@ -80,14 +90,7 @@ int main()
 	//Start radio
 	nrf->RX_PowerUp();
 
-	//Get controller instance and initialise
-#if MODE == 0
-	CBaseController<CStandaloneController> *controller = CBaseController<CStandaloneController>::getInstance();
-#elif MODE == 1
-	CBaseController<CMasterController> *controller = CBaseController<CMasterController>::getInstance();
-#elif MODE == 2
-	CBaseController<CSlaveController> *controller = CBaseController<CSlaveController>::getInstance();
-#endif
+
 	//CBaseController *controller = CBaseController::getInstance();
 
 	//Initialise timer
@@ -121,37 +124,18 @@ int main()
 //Callbacks
 void uartCallback(char *data)
 {
-#if MODE == 0
-	CBaseController<CStandaloneController>::getInstance()->uartCallback(data);
-#elif MODE == 1
-	CBaseController<CMasterController>::getInstance()->uartCallback(data);
-#elif MODE == 2
-	CBaseController<CSlaveController>::getInstance()->uartCallback(data);
-#endif
-	//CUart::getInstance()->puts("response ready\n\r");
-
+	controller->setDataInUartBuffer(data);
+	controller->setReadyForProcessUart(true);
 }
 
 void timerCallback()
 {
-#if MODE == 0
-	CBaseController<CStandaloneController>::getInstance()->timerCallback();
-#elif MODE == 1
-	CBaseController<CMasterController>::getInstance()->timerCallback();
-#elif MODE == 2
-	CBaseController<CSlaveController>::getInstance()->timerCallback();
-#endif
+	controller->timerCallback();
 }
 
 void nrfCallback(void * nRF_RX_buff , uint8_t len )
 {
-#if MODE == 0
-	CBaseController<CStandaloneController>::getInstance()->nrfCallback(nRF_RX_buff, len);
-#elif MODE == 1
-	CBaseController<CMasterController>::getInstance()->nrfCallback(nRF_RX_buff, len);
-#elif MODE == 2
-	CBaseController<CSlaveController>::getInstance()->nrfCallback(nRF_RX_buff, len);
-#endif
+	controller->nrfCallback(nRF_RX_buff, len);
 }
 
 

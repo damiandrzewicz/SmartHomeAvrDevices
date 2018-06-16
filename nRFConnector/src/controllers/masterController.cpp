@@ -12,6 +12,8 @@
 #include "../nrf/nRF24L01_memory_map.h"
 #include "../uart/uart.h"
 #include "../timer/timer.h"
+#include "../dataParser/internalConnParser.h"
+#include "../dataParser/dataParser.h"
 
 CMasterController::CMasterController()
 {
@@ -103,6 +105,19 @@ void CMasterController::prepareResponseMsgFromBuffer(char *buff)
 
 void CMasterController::controllerEvent()
 {
+	if(isReadyForProcessUart())
+	{
+		//Process uart data
+		CInternalConnParser internalConnParser;
+		ParseResult result = internalConnParser.parseInputMessage(getUartdataBuffer());
+
+
+
+		//Reset Flag
+		setReadyForProcessUart(false);
+		setRequestInBufferReady(true);
+	}
+
 	if(isRequestInBufferReady())
 		{
 			if(strcmp(getOperationName(), "setReceiverAddress") == 0)
@@ -120,101 +135,104 @@ void CMasterController::controllerEvent()
 			setRequestInBufferReady(false);
 		}
 
-		if(isWaitingForRadioResponse())
+	if(isWaitingForRadioResponse())
+	{
+		//CUart::getInstance()->putint(m_nTimerValue, 10);
+
+		if(isRadioDataReceived())
 		{
-			//CUart::getInstance()->putint(m_nTimerValue, 10);
+			stopTimer();
+			setRadioDataReceived(false);
+			setWaitingForRadioResponse(false);
 
-			if(isRadioDataReceived())
-			{
-				stopTimer();
-				setRadioDataReceived(false);
-				setWaitingForRadioResponse(false);
-
-				setReadyForProcessResponse(true);
-			}
-			else if(isTimeout())
-			{
-
-				stopTimer();
-				setError(ErrorType::Timeout);
-
-				setRadioDataReceived(false);
-				setWaitingForRadioResponse(false);
-
-				setReadyForProcessResponse(true);
-				//CUart::getInstance()->puts("response ready\n\r");
-			}
+			setReadyForProcessResponse(true);
 		}
-
-		if(isReadyForProcessResponse())
+		else if(isTimeout())
 		{
-			//Prepare response
-			char response[100];
-			prepareResponseMsgFromBuffer(response);
 
-			CUart::getInstance()->puts(response);			//Send response by UART
-			CUart::getInstance()->puts("\r");				//Terminate response
+			stopTimer();
+			setError(ErrorType::Timeout);
 
-			//Reset ready for response state
-			setReadyForProcessResponse(false);
+			setRadioDataReceived(false);
+			setWaitingForRadioResponse(false);
 
-			//Reset error if occured
-			if(isError())
-			{
-				resetError();
-			}
+			setReadyForProcessResponse(true);
+			//CUart::getInstance()->puts("response ready\n\r");
 		}
+	}
+
+	if(isReadyForProcessResponse())
+	{
+		//Prepare response
+		char response[100];
+		prepareResponseMsgFromBuffer(response);
+
+		CUart::getInstance()->puts(response);			//Send response by UART
+		CUart::getInstance()->puts("\r");				//Terminate response
+
+		//Reset ready for response state
+		setReadyForProcessResponse(false);
+
+		//Reset error if occured
+		if(isError())
+		{
+			resetError();
+		}
+	}
 }
 
 //Callbacks
-void CMasterController::uartCallback(char *data)
-{
+//void CMasterController::uartCallback(char *data)
+//{
+	//setMessageInBuffer(data);
+	//setReadyForProcessUart(true);
+
 	//Message received, process it
-	CDataParser parser;
-	CDataParser::ParseResult result = parser.parseData(data);
+//	CDataParser parser;
+//	CDataParser::ParseResult result = parser.parseData(data);
+//
+//	if(result != CDataParser::ParseResult::Ok)
+//	{
+//		setError(static_cast<int8_t>(result));
+//
+//		setReadyForProcessResponse(true);
+//		return;
+//	}
+//
+//	char *cRequest = parser.getNextToken();
+//
+//	if(strcmp(cRequest, "request") != 0)
+//	{
+//		setError(CMasterController::ErrorType::General);
+//		setReadyForProcessResponse(true);
+//		return;
+//	}
+//
+//	setOperationName(parser.getNextToken());
+//
+//	//Process set receiver address operation
+//	if(strcmp(getOperationName(), "setReceiverAddress") == 0)
+//	{
+//		//Get value
+//		char *cValue = parser.getNextToken();
+//		char newAddr[6];
+//		strcpy(newAddr, "x");
+//		strcat(newAddr, cValue);
+//
+//		setMessageInBuffer(newAddr);
+//		setRequestInBufferReady(true);
+//	}
+//	//Process send data to air
+//	else if(strcmp(getOperationName(), "sendData") == 0)
+//	{
+//		//Get message
+//		char *cMessage = parser.getNextToken();
+//
+//		setMessageInBuffer(cMessage);
+//		setRequestInBufferReady(true);
+//	}
 
-	if(result != CDataParser::ParseResult::Ok)
-	{
-		setError(static_cast<int8_t>(result));
-
-		setReadyForProcessResponse(true);
-		return;
-	}
-
-	char *cRequest = parser.getNextToken();
-
-	if(strcmp(cRequest, "request") != 0)
-	{
-		setError(CMasterController::ErrorType::General);
-		setReadyForProcessResponse(true);
-		return;
-	}
-
-	setOperationName(parser.getNextToken());
-
-	//Process set receiver address operation
-	if(strcmp(getOperationName(), "setReceiverAddress") == 0)
-	{
-		//Get value
-		char *cValue = parser.getNextToken();
-		char newAddr[6];
-		strcpy(newAddr, "x");
-		strcat(newAddr, cValue);
-
-		setMessageInBuffer(newAddr);
-		setRequestInBufferReady(true);
-	}
-	//Process send data to air
-	else if(strcmp(getOperationName(), "sendData") == 0)
-	{
-		//Get message
-		char *cMessage = parser.getNextToken();
-
-		setMessageInBuffer(cMessage);
-		setRequestInBufferReady(true);
-	}
-
-}
+//}
 
 
 

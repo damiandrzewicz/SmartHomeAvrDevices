@@ -7,24 +7,17 @@
 
 #include "servoController.h"
 
-CServoController::CServoController() {
-	// TODO Auto-generated constructor stub
-
+CServoController::CServoController(CServo *ptr, CQuadratureEncoder *encoder) {
+	m_servo = ptr;
+	m_encoder = encoder;
 }
 
 CServoController::~CServoController() {
 	// TODO Auto-generated destructor stub
 }
 
-//Setters
-void CServoController::registerServo(CServo *ptr)
-{
-	m_servo = ptr;
-}
 
-//Getters
-
-void controllerEvent()
+void CServoController::event()
 {
 
 }

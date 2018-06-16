@@ -31,7 +31,7 @@ public:
 
 	//Error types
 	enum class ErrorType{
-		Dummy = CDataParser::ParseResult::Ok,
+		Dummy = ParseResult::Ok,
 		Timeout,
 		General,
 		OperationSpecified,
@@ -44,6 +44,13 @@ public:
 
 	char *getBufferPtr();
 	void setMessageInBuffer(char *msg);
+
+	//Uart
+	void setReadyForProcessUart(bool value);
+	bool isReadyForProcessUart();
+
+	void setDataInUartBuffer(char *data);
+	char *getUartdataBuffer();
 
 	//Nrf interface
 	void setRadioDataReceived(bool val);
@@ -65,7 +72,7 @@ public:
 	void resetTimerValue();
 
 	//Callbacks
-	virtual void uartCallback(char *data);
+	//virtual void uartCallback(char *data);
 	void timerCallback();
 	void nrfCallback(void * nRF_RX_buff , uint8_t len );
 
@@ -80,11 +87,13 @@ private:
 	volatile uint16_t m_nTimerValue = 0;
 	char *m_sOperationName = nullptr;
 	char m_dataBuffer[m_sBufferSize];
+	char *m_uartBuffer = nullptr;
 
 	int8_t m_nErrorNo;
 
 	//********Flags*********
 	bool m_bRadioDataReceived = false;
+	bool m_bReadyForProcessUart = false;
 };
 
 #include "baseController.cpp"

@@ -46,6 +46,31 @@ char *CBaseController<T>::getOperationName()
 	return m_sOperationName;
 }
 
+//Uart
+template <typename T>
+void CBaseController<T>::setReadyForProcessUart(bool value)
+{
+	m_bReadyForProcessUart = value;
+}
+
+template <typename T>
+bool CBaseController<T>::isReadyForProcessUart()
+{
+	return m_bReadyForProcessUart;
+}
+
+template <typename T>
+void CBaseController<T>::setDataInUartBuffer(char *data)
+{
+	m_uartBuffer = data;
+}
+
+template <typename T>
+char *CBaseController<T>::getUartdataBuffer()
+{
+	return m_uartBuffer;
+}
+
 template <typename T>
 void CBaseController<T>::resetError()
 {

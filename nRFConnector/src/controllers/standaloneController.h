@@ -31,7 +31,7 @@ public:
 	bool isReadyForProcessResponse();
 
 	//Callbacks
-	void uartCallback(char *data) override;
+	void uartCallback(char *data);
 	void controllerEvent() override;
 
 private:

@@ -1,15 +1,15 @@
 /*
- * CDataParser.cpp
+ * dataParser.cpp
  *
- *  Created on: Apr 7, 2018
+ *  Created on: Jun 14, 2018
  *      Author: damian
  */
 
+#include "dataParser.h"
+#include "../uart/uart.h"
+
 #include <string.h>
 #include <stdlib.h>
-#include "dataParser.h"
-
-#include "../uart/uart.h"
 
 CDataParser::CDataParser() {
 	// TODO Auto-generated constructor stub
@@ -20,13 +20,13 @@ CDataParser::~CDataParser() {
 	// TODO Auto-generated destructor stub
 }
 
-CDataParser::ParseResult CDataParser::parseData(char *data)
+ParseResult CDataParser::checkTrimmingChars(char *data, char delim1, char delim2)
 {
-	//Reset pos
-	resetPos();
-
 	//Get size
 	uint8_t len = strlen(data);
+
+	if(delim2 == '\0')
+		delim2 = delim1;
 
 	//Check data object
 	if(data == nullptr)
@@ -35,40 +35,49 @@ CDataParser::ParseResult CDataParser::parseData(char *data)
 		return ParseResult::EmptyDataPointer;
 
 	//Check first character
-	if(data[0] != '@')
+	if(data[0] != delim1)
 		return ParseResult::BadFirstChar;
 
 	//Check last character
-	if(data[len-1] != '@')
+	if(data[len-1] != delim2)
 		return ParseResult::BadLastChar;
 
-	//Get request
-	m_buffer[0] = strtok(data, "@");
-	if(strcmp(m_buffer[0], "") == 0)
-		return ParseResult::EmptyRequest;
+	return ParseResult::Ok;
+}
 
-	//Get operation
-	m_buffer[1] = strtok(NULL, "@");
-	if(strcmp(m_buffer[1], "") == 0)
-		return ParseResult::EmptyOperation;
+ParseResult CDataParser::parseData(char *data, const char *delim)
+{
+	//Reset pos
+	resetPos();
+	cleanBuffer();
 
-	//Get value
-	m_buffer[2] = strtok(NULL, "@");
-	if(strcmp(m_buffer[2], "") == 0)
-		return ParseResult::EmptyValue;
+	uint8_t nPos = 0;
+	char *token = strtok(data, delim);
 
+	while(token != NULL)
+	{
+		strcpy(m_buffer[nPos++], token);
+		//m_buffer[nPos++] = token;
+		token = strtok(NULL, delim);
+	}
+
+	//CUart::getInstance()->puts(m_buffer[1]);
+	//CUart::getInstance()->puts("\r\n");
+
+	//PORTB ^= (1 << PB7);
 	return ParseResult::Ok;
 }
 
 void CDataParser::cleanBuffer()
 {
+	memset(m_buffer, 0, sizeof m_buffer);
 	//memset(m_buffer, 0, sizeof(m_buffer[0][0]) * m_sBufferRows);
 	//Clean pointers
-	uint8_t i;
-	for(i = 0; i < m_sBufferRows; ++i)
-	{
-		m_buffer[i] = nullptr;
-	}
+//	uint8_t i;
+//	for(i = 0; i < m_sBufferRows; ++i)
+//	{
+//		m_buffer[i] = nullptr;
+//	}
 }
 
 char *CDataParser::getNextToken()
@@ -83,5 +92,4 @@ void CDataParser::resetPos()
 {
 	m_nPos = 0;
 }
-
 

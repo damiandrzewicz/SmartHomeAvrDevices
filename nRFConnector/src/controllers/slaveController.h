@@ -28,7 +28,7 @@ public:
 	void processSendData() override;
 
 	//Callbacks
-	void uartCallback(char *data) override;
+	void uartCallback(char *data);
 	//void timerCallback() override;
 
 	void controllerEvent() override;
