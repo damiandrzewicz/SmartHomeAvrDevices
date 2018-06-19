@@ -25,7 +25,7 @@ private:
 	~CSlaveController();
 
 public:
-	void processSendData() override;
+	void processSendData();
 
 	//Callbacks
 	void uartCallback(char *data);

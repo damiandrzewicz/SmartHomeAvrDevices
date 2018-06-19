@@ -21,7 +21,7 @@ private:
 	~CStandaloneController();
 
 public:
-	void processSendData() override;
+	void processSendData();
 	void prepareResponseMsgFromBuffer(char *buff);
 
 	void setRequestInBufferReady(bool val);

@@ -48,7 +48,7 @@ void timerCallback();
 void nrfCallback(void * nRF_RX_buff , uint8_t len );
 
 //Global objects
-//Get controller instance and initialise
+//Get controller instance and initialise - class depends on the configuration
 #if NRF_MODE == 0
 CBaseController<CStandaloneController> *controller = CBaseController<CStandaloneController>::getInstance();
 #elif NRF_MODE == 1
@@ -124,18 +124,17 @@ int main()
 //Callbacks
 void uartCallback(char *data)
 {
-	controller->setDataInUartBuffer(data);
-	controller->setReadyForProcessUart(true);
+	//controller->uartCallback(data);
 }
 
 void timerCallback()
 {
-	controller->timerCallback();
+	//controller->timerCallback();
 }
 
 void nrfCallback(void * nRF_RX_buff , uint8_t len )
 {
-	controller->nrfCallback(nRF_RX_buff, len);
+	//controller->nrfCallback(nRF_RX_buff, len);
 }
 
 

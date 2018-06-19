@@ -9,42 +9,29 @@
 #define SRC_PARSER_DATAPARSER_H_
 
 #include <avr/io.h>
-
-
-enum class ParseResult
-{
-	NullDataPointer,
-	EmptyDataPointer,
-	BadFirstChar,
-	BadLastChar,
-	EmptyRequest,
-	EmptyValue,
-	BadRequest,
-	Ok
-};
+#include "resultTypes.h"
 
 class CDataParser {
 public:
-
-
-	ParseResult checkTrimmingChars(char *data, char delim1 = ' ', char delim2 = '\0');
-	ParseResult parseData(char *data, const char *delim = " ");
-	char *getNextToken();
-	void cleanBuffer();
-
-public:
 	//Cnstructors
 	CDataParser();	//Prevent consttuction but allow in getInstance
-	CDataParser(const CDataParser&);	//Prevent construction by copying
-	CDataParser& operator=(const CDataParser&);	//Prevent assigment
 	~CDataParser();					//Prevent unwanted destruction
 
+	DataParseResult checkTrimmingChars(char *data, char delim1 = ' ', char delim2 = '\0');
+	DataParseResult parseData(char *data, const char *delim = " ");
+	char *getNextToken();
+	void clean();
+
+	//Operations
 private:
 	void resetPos();
+	void cleanBuffer();
 
+	//members
 private:
 	static const uint8_t m_sBufferRows = 20;
-	char m_buffer[m_sBufferRows][18] ;
+	static const uint8_t m_sBufferColumns = 18;
+	char m_buffer[m_sBufferRows][m_sBufferColumns] ;
 	uint8_t m_nPos = 0;
 };
 

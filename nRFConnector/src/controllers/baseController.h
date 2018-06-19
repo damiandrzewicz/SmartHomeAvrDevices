@@ -10,7 +10,8 @@
 
 #include <avr/io.h>
 #include "../dataParser/dataParser.h"
-
+#include "../dataParser/internalUartParser.h"
+#include "../dataParser/resultTypes.h"
 
 
 template<typename T>
@@ -29,38 +30,35 @@ public:
 		return &instance;
 	}
 
-	//Error types
-	enum class ErrorType{
-		Dummy = ParseResult::Ok,
-		Timeout,
-		General,
-		OperationSpecified,
-		Ok
-	};
-
-	//Common interface
-	void setOperationName(char *op);
-	char *getOperationName();
+	//Process data
+	// TODO - check if this will be important to use
+	void setBusy(bool value);
+	bool isBusy();
 
 	char *getBufferPtr();
-	void setMessageInBuffer(char *msg);
+	void setDataInBuffer(char *msg);
 
 	//Uart
-	void setReadyForProcessUart(bool value);
-	bool isReadyForProcessUart();
+	void setReadyForProcessUartReceivedData(bool value){ m_bReadyForProcessReceivedUartData = value; }
+	bool isReadyForProcessUartReceivedData(){ return m_bReadyForProcessReceivedUartData; }
 
-	void setDataInUartBuffer(char *data);
-	char *getUartdataBuffer();
+	void setReadyForProcessUartResponseData(bool value){ m_bReadyForProcessUartResponseData = value; }
+	bool isReadyForProcessUartResponseData(){ return m_bReadyForProcessUartResponseData; }
 
-	//Nrf interface
-	void setRadioDataReceived(bool val);
-	bool isRadioDataReceived();
-	virtual void processSendData();
+	//Radio data
+	void setReadyForProcessReceivedRadioData(bool value){ m_bReadyForProcessReceivedRadioData = value; }
+	bool isReadyForProcessReceivedRadioData(){ return m_bReadyForProcessReceivedRadioData; }
+
+	void setWaitingForUartResponse(bool value){ m_bIsWaitingForUartResponse = value; }
+	bool isWaitingForUartResponse(){ return m_bIsWaitingForUartResponse; }
+
+	void setCurrentOperationType(CInternalUartParser::OperationType type){ m_currentOperationType = type; }
+	CInternalUartParser::OperationType getCurrentOperationType(){ return m_currentOperationType; }
 
 	//Error handling
 	void resetError();
-	void setError(ErrorType err);
 	void setError(int8_t err);
+	int8_t getErrorNo();
 	bool isError();
 
 	//Timer interface
@@ -72,28 +70,40 @@ public:
 	void resetTimerValue();
 
 	//Callbacks
-	//virtual void uartCallback(char *data);
+	void uartCallback(char *data);
 	void timerCallback();
 	void nrfCallback(void * nRF_RX_buff , uint8_t len );
 
+	//Main event - to implement in inherited classes
 	virtual void controllerEvent() = 0;
 
-private:
+	//Operations
+	virtual void processSendDataToAir();
+	virtual void processSetTransmitterAddress();
 
+	void clean();
+
+protected:
+	CInternalUartParser m_internalUartParser;
+
+private:
 	static const uint8_t m_sBufferSize = 32;
 	static const uint16_t m_sTimeout = 100;			//Timeout 500ms
 	static const uint8_t m_sTimerHandle = 0;
 
 	volatile uint16_t m_nTimerValue = 0;
-	char *m_sOperationName = nullptr;
 	char m_dataBuffer[m_sBufferSize];
-	char *m_uartBuffer = nullptr;
 
-	int8_t m_nErrorNo;
+	int8_t m_nErrorNo =  static_cast<int8_t>(ControllerResult::Ok);
+	//ControllerResult m_controllerState = ControllerResult::Dummy;
+
+	CInternalUartParser::OperationType m_currentOperationType = CInternalUartParser::OperationType::Unspecified;
 
 	//********Flags*********
-	bool m_bRadioDataReceived = false;
-	bool m_bReadyForProcessUart = false;
+	volatile bool m_bReadyForProcessReceivedRadioData = false;
+	volatile bool m_bReadyForProcessReceivedUartData = false;
+	volatile bool m_bIsWaitingForUartResponse = false;
+	volatile bool m_bReadyForProcessUartResponseData = false;
 };
 
 #include "baseController.cpp"

@@ -20,7 +20,7 @@ CDataParser::~CDataParser() {
 	// TODO Auto-generated destructor stub
 }
 
-ParseResult CDataParser::checkTrimmingChars(char *data, char delim1, char delim2)
+DataParseResult CDataParser::checkTrimmingChars(char *data, char delim1, char delim2)
 {
 	//Get size
 	uint8_t len = strlen(data);
@@ -30,22 +30,22 @@ ParseResult CDataParser::checkTrimmingChars(char *data, char delim1, char delim2
 
 	//Check data object
 	if(data == nullptr)
-		return ParseResult::NullDataPointer;
+		return DataParseResult::NullDataPointer;
 	else if(len == 0)
-		return ParseResult::EmptyDataPointer;
+		return DataParseResult::EmptyDataPointer;
 
 	//Check first character
 	if(data[0] != delim1)
-		return ParseResult::BadFirstChar;
+		return DataParseResult::BadFirstChar;
 
 	//Check last character
 	if(data[len-1] != delim2)
-		return ParseResult::BadLastChar;
+		return DataParseResult::BadLastChar;
 
-	return ParseResult::Ok;
+	return DataParseResult::Ok;
 }
 
-ParseResult CDataParser::parseData(char *data, const char *delim)
+DataParseResult CDataParser::parseData(char *data, const char *delim)
 {
 	//Reset pos
 	resetPos();
@@ -65,19 +65,7 @@ ParseResult CDataParser::parseData(char *data, const char *delim)
 	//CUart::getInstance()->puts("\r\n");
 
 	//PORTB ^= (1 << PB7);
-	return ParseResult::Ok;
-}
-
-void CDataParser::cleanBuffer()
-{
-	memset(m_buffer, 0, sizeof m_buffer);
-	//memset(m_buffer, 0, sizeof(m_buffer[0][0]) * m_sBufferRows);
-	//Clean pointers
-//	uint8_t i;
-//	for(i = 0; i < m_sBufferRows; ++i)
-//	{
-//		m_buffer[i] = nullptr;
-//	}
+	return DataParseResult::Ok;
 }
 
 char *CDataParser::getNextToken()
@@ -88,8 +76,20 @@ char *CDataParser::getNextToken()
 		return nullptr;
 }
 
+void CDataParser::cleanBuffer()
+{
+	memset(m_buffer, 0, sizeof m_buffer);
+}
+
+
 void CDataParser::resetPos()
 {
 	m_nPos = 0;
+}
+
+void CDataParser::clean()
+{
+	cleanBuffer();
+	resetPos();
 }
 

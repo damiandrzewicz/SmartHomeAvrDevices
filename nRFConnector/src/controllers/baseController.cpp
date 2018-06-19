@@ -15,10 +15,11 @@
 #include "../nrf/nRF24L01_memory_map.h"
 #include "../uart/uart.h"
 #include "../timer/timer.h"
+#include "../dataParser/resultTypes.h"
 
 template <typename T>
 CBaseController<T>::CBaseController() {
-	m_nErrorNo = static_cast<int8_t>(ErrorType::Ok);
+	//m_nErrorNo = static_cast<int8_t>(ErrorType::Ok);
 
 }
 
@@ -27,90 +28,53 @@ CBaseController<T>::~CBaseController() {
 	// TODO Auto-generated destructor stub
 }
 
+/********************************************
+ * ****** PROCESSING MESSAGES ***************
+ ********************************************/
 //template <typename T>
-//T *CBaseController<T>::getInstance();
+//void CBaseController<T>::setBusy(bool value)
 //{
-//	static T instance;
-//	return instance;
+//	m_bBusy = value;
 //}
-
-template <typename T>
-void CBaseController<T>::setOperationName(char *op)
-{
-	m_sOperationName = op;
-}
-
-template <typename T>
-char *CBaseController<T>::getOperationName()
-{
-	return m_sOperationName;
-}
-
-//Uart
-template <typename T>
-void CBaseController<T>::setReadyForProcessUart(bool value)
-{
-	m_bReadyForProcessUart = value;
-}
-
-template <typename T>
-bool CBaseController<T>::isReadyForProcessUart()
-{
-	return m_bReadyForProcessUart;
-}
-
-template <typename T>
-void CBaseController<T>::setDataInUartBuffer(char *data)
-{
-	m_uartBuffer = data;
-}
-
-template <typename T>
-char *CBaseController<T>::getUartdataBuffer()
-{
-	return m_uartBuffer;
-}
+//
+//template <typename T>
+//bool CBaseController<T>::isBusy()
+//{
+//	return m_bBusy;
+//}
 
 template <typename T>
 void CBaseController<T>::resetError()
 {
-	setError(ErrorType::Ok);
+	m_nErrorNo =  static_cast<int8_t>(ControllerResult::Ok);
 }
 
 template <typename T>
-void CBaseController<T>::setError(ErrorType err)
-{
-	setError(static_cast<int8_t>(err));
+void CBaseController<T>::setError(int8_t err){
+	m_nErrorNo = err;
 }
 
+//template <typename T>
+//ControllerResult CBaseController<T>::getError()
+//{
+//	return m_controllerState;
+//}
+
 template <typename T>
-void CBaseController<T>::setError(int8_t err)
+int8_t CBaseController<T>::getErrorNo()
 {
-	m_nErrorNo = static_cast<int8_t>(err);
-	char valBuff[5];
-	itoa(static_cast<int8_t>(m_nErrorNo), valBuff, 10);
-	strcpy(getBufferPtr(), valBuff);
+	return m_nErrorNo;
 }
 
 template <typename T>
 bool CBaseController<T>::isError()
 {
-	int8_t nOk = static_cast<int8_t>(ErrorType::Ok);
-	return (m_nErrorNo != nOk);
+	return (m_nErrorNo != static_cast<bool>(ControllerResult::Ok)) ? true : false;
 }
 
-template <typename T>
-void CBaseController<T>::setRadioDataReceived(bool val)
-{
-	m_bRadioDataReceived = val;
-}
-
-template <typename T>
-bool CBaseController<T>::isRadioDataReceived()
-{
-	return m_bRadioDataReceived;
-}
-
+/********************************************
+ * **************** TIMER *******************
+ ********************************************/
 template <typename T>
 uint8_t CBaseController<T>::getTimerHandle() const
 {
@@ -143,18 +107,6 @@ void CBaseController<T>::incrementtimerTick()
 }
 
 template <typename T>
-char *CBaseController<T>::getBufferPtr()
-{
-	return m_dataBuffer;
-}
-
-template <typename T>
-void CBaseController<T>::setMessageInBuffer(char *msg)
-{
-	strcpy(getBufferPtr(), msg);
-}
-
-template <typename T>
 bool CBaseController<T>::isTimeout()
 {
 	if(m_nTimerValue > (m_sTimeout / 10))
@@ -162,12 +114,55 @@ bool CBaseController<T>::isTimeout()
 	else
 		return false;
 }
-//template <typename T>
-//void CBaseController<T>::processSendData()
-//{
-//	CNrf::getInstance()->sendDataToAir(getBufferPtr());
-//	startTimer();
-//}
+
+/********************************************
+ * ************* MAIN BUFFER ****************
+ ********************************************/
+template <typename T>
+char *CBaseController<T>::getBufferPtr()
+{
+	return m_dataBuffer;
+}
+
+template <typename T>
+void CBaseController<T>::setDataInBuffer(char *msg)
+{
+	strcpy(getBufferPtr(), msg);
+}
+
+/********************************************
+ * ************** OPERATIONS ****************
+ ********************************************/
+template <typename T>
+void CBaseController<T>::processSendDataToAir()
+{
+	CNrf::getInstance()->sendDataToAir(getBufferPtr());
+	startTimer();
+}
+
+template <typename T>
+void CBaseController<T>::processSetTransmitterAddress()
+{
+	CNrf::getInstance()->setTransmitterAdres(getBufferPtr());
+	CNrf::getInstance()->setReciverAddres(RX_ADDR_P0, getBufferPtr());
+}
+
+template <typename T>
+void CBaseController<T>::clean()
+{
+	m_currentOperationType = CInternalUartParser::OperationType::Unspecified;
+	m_nErrorNo =  static_cast<int8_t>(ControllerResult::Ok);
+}
+
+/********************************************
+ * ************** CALLBACKS *****************
+ ********************************************/
+template <typename T>
+void CBaseController<T>::uartCallback(char *data)
+{
+	setDataInBuffer(data);
+	setReadyForProcessUartReceivedData(true);
+}
 
 template <typename T>
 void CBaseController<T>::timerCallback()
@@ -178,8 +173,10 @@ void CBaseController<T>::timerCallback()
 template <typename T>
 void CBaseController<T>::nrfCallback(void * nRF_RX_buff , uint8_t len )
 {
-	setMessageInBuffer(static_cast<char*>(nRF_RX_buff));
-	setRadioDataReceived(true);
+	setDataInBuffer(static_cast<char*>(nRF_RX_buff));
+	setReadyForProcessReceivedRadioData(true);
 }
+
+
 
 #endif

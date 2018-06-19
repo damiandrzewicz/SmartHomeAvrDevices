@@ -12,8 +12,8 @@
 #include "../nrf/nRF24L01_memory_map.h"
 #include "../uart/uart.h"
 #include "../timer/timer.h"
-#include "../dataParser/internalConnParser.h"
 #include "../dataParser/dataParser.h"
+#include "../dataParser/internalUartParser.h"
 
 CMasterController::CMasterController()
 {
@@ -23,162 +23,209 @@ CMasterController::~CMasterController()
 {
 }
 
-void CMasterController::setRequestInBufferReady(bool val)
-{
-	m_bRequestInBufferReady = val;
-}
 
-bool CMasterController::isRequestInBufferReady()
+/********************************************
+ * ************** OPERATIONS ****************
+ ********************************************/
+void CMasterController::processSendDataToAir()
 {
-	return m_bRequestInBufferReady;
-}
-
-void CMasterController::setRequestProcessReady(bool val)
-{
-	m_bRequestProcessReady = val;
-}
-
-bool CMasterController::isRequestProcessReady()
-{
-	return m_bRequestProcessReady;
-}
-
-void CMasterController::setWaitingForRadioResponse(bool val)
-{
-	m_bWaitingForRadioResponse = val;
-}
-
-bool CMasterController::isWaitingForRadioResponse()
-{
-	return m_bWaitingForRadioResponse;
-}
-
-void CMasterController::setReadyForProcessResponse(bool val)
-{
-	m_bReadyForProcessResponse = val;
-}
-
-bool CMasterController::isReadyForProcessResponse()
-{
-	return m_bReadyForProcessResponse;
-}
-
-void CMasterController::procesSetReceiverAddress()
-{
-	CNrf::getInstance()->setTransmitterAdres(getBufferPtr());
-	CNrf::getInstance()->setReciverAddres(RX_ADDR_P0, getBufferPtr());
-}
-
-void CMasterController::processSendData()
-{
-	CNrf::getInstance()->sendDataToAir(getBufferPtr());
+	CBaseController<CMasterController>::processSendDataToAir();
 	setWaitingForRadioResponse(true);
-	startTimer();
 }
 
-void CMasterController::prepareResponseMsgFromBuffer(char *buff)
+void CMasterController::processRequest()
 {
-	strcpy(buff, "@response");
-
-	//Check if Error occured
-	if(isError())
+	CInternalUartParser::OperationType operationType = m_internalUartParser.getIncomingOperationType();
+	if(operationType == CInternalUartParser::OperationType::SetTransmitterAddress)
 	{
-		strcat(buff, "@err@");
+		setDataInBuffer(m_internalUartParser.getDataBuffer());
+		processSetTransmitterAddress();
+		setReadyForProcessUartResponseData(true);
 	}
-	else
+	else if(operationType == CInternalUartParser::OperationType::SendDataToAir)
 	{
-		strcat(buff, "@ok@");
+
 	}
+}
 
-	//Add info data
-	strcat(buff, getBufferPtr());
+void CMasterController::processResponse()
+{
 
-
-	if(strcmp(getOperationName(), "") != 0)
-	{
-		strcat(buff, "@");
-		strcat(buff, getOperationName());
-	}
-
-	strcat(buff, "@");
 }
 
 void CMasterController::controllerEvent()
 {
-	if(isReadyForProcessUart())
+	if(isReadyForProcessUartReceivedData())
 	{
+		//Clean data
+		m_internalUartParser.clean();
+
 		//Process uart data
-		CInternalConnParser internalConnParser;
-		ParseResult result = internalConnParser.parseInputMessage(getUartdataBuffer());
+		UartParserResult uartParserResult = m_internalUartParser.parseInputMessage(getBufferPtr());
+		if(uartParserResult != UartParserResult::Ok)
+		{
+			setError(static_cast<int8_t>(uartParserResult));
+			setReadyForProcessUartResponseData(true);
+			return;
+		}
 
-
-
-		//Reset Flag
-		setReadyForProcessUart(false);
-		setRequestInBufferReady(true);
+		//Transition
+		setReadyForProcessUartReceivedData(false);
+		setReadyForProcessUartParsedMessage(true);
 	}
 
-	if(isRequestInBufferReady())
-		{
-			if(strcmp(getOperationName(), "setReceiverAddress") == 0)
-			{
-				//Process "setReceiverAddress" message
-				procesSetReceiverAddress();
-				setReadyForProcessResponse(true);
-			}
-			else if(strcmp(getOperationName(), "sendData") == 0)
-			{
-				//Process "sendData" message
-				processSendData();
-			}
-			//CUart::getInstance()->puts(" response ready\n\r");
-			setRequestInBufferReady(false);
-		}
-
-	if(isWaitingForRadioResponse())
+	if(isReadyForProcessUartParsedMessage())
 	{
-		//CUart::getInstance()->putint(m_nTimerValue, 10);
+		CInternalUartParser::MessageType msgType = m_internalUartParser.getIncomingMessageType();
+		CInternalUartParser::OperationType operationType = m_internalUartParser.getIncomingOperationType();
 
-		if(isRadioDataReceived())
+		if( !isWaitingForUartResponse() )
 		{
-			stopTimer();
-			setRadioDataReceived(false);
-			setWaitingForRadioResponse(false);
-
-			setReadyForProcessResponse(true);
+			if(msgType == CInternalUartParser::MessageType::Request)
+			{
+				//Process requests
+				setCurrentOperationType(operationType);
+				processRequest();
+			}
+			else
+			{
+				setError(static_cast<int8_t>(ControllerResult::BadMessageType));
+				setReadyForProcessUartParsedMessage(false);
+				setReadyForProcessUartResponseData(true);
+				return;
+			}
 		}
-		else if(isTimeout())
+		else
 		{
+			if(msgType == CInternalUartParser::MessageType::Response)
+			{
+				if(getCurrentOperationType() != operationType)
+				{
+					setError(static_cast<int8_t>(ControllerResult::BadOperationType));
+					setReadyForProcessUartParsedMessage(false);
+					setReadyForProcessUartResponseData(true);
+					return;
+				}
+				else
+				{
+					//Process response
+					processResponse();
+				}
 
-			stopTimer();
-			setError(ErrorType::Timeout);
-
-			setRadioDataReceived(false);
-			setWaitingForRadioResponse(false);
-
-			setReadyForProcessResponse(true);
-			//CUart::getInstance()->puts("response ready\n\r");
+			}
+			else
+			{
+				setError(static_cast<int8_t>(ControllerResult::BadMessageType));
+				setReadyForProcessUartParsedMessage(false);
+				setReadyForProcessUartResponseData(true);
+				return;
+			}
 		}
+
+
+		if(msgType == CInternalUartParser::MessageType::Request)
+		{
+			setWaitingForUartResponse(true);
+		}
+
+		setReadyForProcessUartParsedMessage(false);
 	}
 
-	if(isReadyForProcessResponse())
+
+	//Last step - send Uart response
+	if(isReadyForProcessUartResponseData())
 	{
-		//Prepare response
-		char response[100];
-		prepareResponseMsgFromBuffer(response);
-
-		CUart::getInstance()->puts(response);			//Send response by UART
-		CUart::getInstance()->puts("\r");				//Terminate response
-
-		//Reset ready for response state
-		setReadyForProcessResponse(false);
-
-		//Reset error if occured
 		if(isError())
 		{
-			resetError();
+			char buff[4];
+			itoa(getErrorNo(), buff, 10);
+			m_internalUartParser.prepareOutputMessage(
+					CInternalUartParser::MessageType::Response,
+					getCurrentOperationType(),
+					buff,
+					CInternalUartParser::MessageValidate::Error);
 		}
+		else
+		{
+			m_internalUartParser.prepareOutputMessage(
+					CInternalUartParser::MessageType::Response,
+					getCurrentOperationType(),
+					getBufferPtr());
+		}
+
+		//Send data
+		CUart::getInstance()->puts(m_internalUartParser.getDataBuffer());			//Send response by UART
+		CUart::getInstance()->puts("\n\r");				//Terminate response
+
+		clean();
+
+		setReadyForProcessUartResponseData(false);
 	}
+
+
+
+
+//	if(isRequestInBufferReady())
+//	{
+//		if(strcmp(getOperationName(), "setReceiverAddress") == 0)
+//		{
+//			//Process "setReceiverAddress" message
+//			procesSetReceiverAddress();
+//			setReadyForProcessResponse(true);
+//		}
+//		else if(strcmp(getOperationName(), "sendData") == 0)
+//		{
+//			//Process "sendData" message
+//			processSendData();
+//		}
+//		//CUart::getInstance()->puts(" response ready\n\r");
+//		setRequestInBufferReady(false);
+//	}
+//
+//	if(isWaitingForRadioResponse())
+//	{
+//		//CUart::getInstance()->putint(m_nTimerValue, 10);
+//
+//		if(isRadioDataReceived())
+//		{
+//			stopTimer();
+//			setRadioDataReceived(false);
+//			setWaitingForRadioResponse(false);
+//
+//			setReadyForProcessResponse(true);
+//		}
+//		else if(isTimeout())
+//		{
+//
+//			stopTimer();
+//			setError(ErrorType::Timeout);
+//
+//			setRadioDataReceived(false);
+//			setWaitingForRadioResponse(false);
+//
+//			setReadyForProcessResponse(true);
+//			//CUart::getInstance()->puts("response ready\n\r");
+//		}
+//	}
+//
+//	if(isReadyForProcessResponse())
+//	{
+//		//Prepare response
+//		char response[100];
+//		prepareResponseMsgFromBuffer(response);
+//
+//		CUart::getInstance()->puts(response);			//Send response by UART
+//		CUart::getInstance()->puts("\r");				//Terminate response
+//
+//		//Reset ready for response state
+//		setReadyForProcessResponse(false);
+//
+//		//Reset error if occured
+//		if(isError())
+//		{
+//			resetError();
+//		}
+//	}
 }
 
 //Callbacks
