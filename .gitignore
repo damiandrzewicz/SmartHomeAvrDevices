@@ -40,6 +40,12 @@ Release/
 # BlindDriverOld section
 BlindDriverOld
 
+# Tests projects
+atmega8Test
+Atmega16UartTest
+
+
+
 
 # Test projects
 atmega8Test

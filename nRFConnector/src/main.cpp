@@ -8,16 +8,16 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+
 #include "settings.h"
-#if NRF_MODE == 0
-#include "controllers/standaloneController.h"
-#elif NRF_MODE == 1
-#include "controllers/masterController.h"
+//#if NRF_MODE == 0
+//#include "controllers/standaloneController.h"
+#if NRF_MODE == 1
+#include "controllers/controllerTerminal.h"
 #elif NRF_MODE == 2
-#include "controllers/slaveController.h"
+#include "controllers/controllerDevice.h"
 #endif
 
-#include "controllers/baseController.h"
 #include "nrf/nrf.h"
 #include "nrf/nRF24L01_memory_map.h"
 #include "spi/SPI.h"
@@ -26,6 +26,8 @@
 #include "timer/timer.h"
 #include "portability.h"
 
+volatile bool breceived = false;
+char nrfbuf[20];
 
 bool bflag = false;
 //
@@ -52,14 +54,14 @@ void nrfCallback(void * nRF_RX_buff , uint8_t len );
 #if NRF_MODE == 0
 CBaseController<CStandaloneController> *controller = CBaseController<CStandaloneController>::getInstance();
 #elif NRF_MODE == 1
-CBaseController<CMasterController> *controller = CBaseController<CMasterController>::getInstance();
+CControllerTerminal *controller = CControllerTerminal::getInstance();
 #elif NRF_MODE == 2
-CBaseController<CSlaveController> *controller = CBaseController<CSlaveController>::getInstance();
+CControllerDevice *controller = CControllerDevice::getInstance();
 #endif
+
 
 int main()
 {
-	DDRC |= (1 << PC0);
 	//PORTC &= ~(1 << PC5);
 
 	const uint8_t nDeviceAddress = 0x01;
@@ -81,7 +83,7 @@ int main()
 
 	nrf->setStateAndWidthOfCRC( ONE_BYTE , OFF  );
 	nrf->setChannel(12);
-	nrf->setActiveDataPipeAndACK( ERX_P0, ON, ACK_OFF  );
+	nrf->setActiveDataPipeAndACK( ERX_P0, ON, ACK_ON  );
 	nrf->setRetransmissionTimeAndAmmount(WAIT_250uS , RETR_15_TIMES );
 	nrf->setDataSpeedAndReciverPower(TRANS_SPEED_2MB, RF_PWR_0dB );
 	nrf->setDynamicPayloadStateOnDataPipe( DPL_P0 , ON  );
@@ -96,18 +98,37 @@ int main()
 	//Initialise timer
 	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 77);
 	timer2->Assign(controller->getTimerHandle(), 0, timerCallback, false);
-	//timer2->Assign(1, 50, tick, true);
+	timer2->Assign(1, 50, tick, true);
 
 
    	//Allow for interrupts
     sei();
+
+	//CUart::getInstance()->puts("Hello123!");			//Send response by UART
+	//CUart::getInstance()->puts("\n\r");				//Terminate response
+
+	//char b[15];
+	//strcpy(b, "Hello xD");
+	//CNrf::getInstance()->sendDataToAir(b);
+
+//	char b[15];
+//	strcpy(b, "blabla");
+//	CNrf::getInstance()->sendDataToAir(b);
+
+    DDRD |= (1 << PD7);
+    PORTD &= ~(1 <<PD7);
+
 
 	while(1)
 	{
 
 //		if(bflag)
 //		{
-//			CUart::getInstance()->puts("dmaian\n\r");
+//			//CUart::getInstance()->putint(CUart::getInstance()->datanumber, 10);
+//			//CUart::getInstance()->puts("\n");
+//
+//
+//
 //			bflag = false;
 //		}
 
@@ -118,23 +139,55 @@ int main()
 		nrf->RX_EVENT();
 
 		controller->controllerEvent();
+
+//		if(breceived)
+//		{
+//				//CUart::getInstance()->puts(nrfbuf);			//Send response by UART
+//				//CUart::getInstance()->puts("\n\r");				//Terminate response
+//
+//				strcat(nrfbuf, " -respo");
+//
+//			//	char b[15];
+//			//	strcpy(b, "response xD");
+//				CNrf::getInstance()->sendDataToAir(nrfbuf);
+//
+//			breceived = false;
+//		}
 	}
 }
 
 //Callbacks
 void uartCallback(char *data)
-{
-	//controller->uartCallback(data);
+{PORTD ^= (1 << PD7);
+	//static uint8_t i = 0;
+	//CUart::getInstance()->putint(i++, 10);
+	//CUart::getInstance()->puts(data);			//Send response by UART
+	//CUart::getInstance()->puts("\n");
+	controller->uartCallback(data);
 }
 
 void timerCallback()
 {
-	//controller->timerCallback();
+	controller->timerCallback();
 }
 
 void nrfCallback(void * nRF_RX_buff , uint8_t len )
 {
-	//controller->nrfCallback(nRF_RX_buff, len);
+
+	//
+
+	//CUart::getInstance()->puts(static_cast<char*>(nRF_RX_buff));			//Send response by UART
+	//CUart::getInstance()->puts("\n\r");				//Terminate response
+	controller->nrfCallback(nRF_RX_buff, len);
+
+	//strcpy(nrfbuf, static_cast<char*>(nRF_RX_buff));
+	//breceived = true;
+
+//	char buf[30];
+//	strcpy(buf, static_cast<char*>(nRF_RX_buff));
+//	strcat(buf, " - resp1234");
+//	CNrf::getInstance()->sendDataToAir(buf);
+
 }
 
 

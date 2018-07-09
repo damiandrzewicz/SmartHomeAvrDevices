@@ -11,6 +11,46 @@
 #include "../io/io.h"
 #include "../timer/timer.h"
 
+class ServoEnum
+{
+public:
+	enum Direction{ Open, Close, Stop};
+	enum Visibility{ Day, Night, None };
+	enum BlindType{ DayNight, FullBlackout };
+};
+
+class ServoModel
+{
+public:
+	ServoModel(){}
+	~ServoModel(){}
+
+	ServoEnum::Direction getDirection(){ return m_dir; }
+	uint8_t getOpenPercent(){ return m_nOpenPercent; }
+	uint8_t getSpeedPercent(){ return m_nSpeedPercent; }
+	bool isAutoDrive(){ return m_bAutoDrive; }
+	ServoEnum::Visibility getVisibility(){ return m_visibility; }
+	ServoEnum::BlindType getBlindType(){ return m_blindType; }
+	bool isWindowClosed(){ return m_bIsWindowClosed; }
+
+	void setDirection(ServoEnum::Direction dir){ m_dir = dir; }
+	void setOpenPercent(uint8_t value){ m_nOpenPercent = value; }
+	void setSpeedPercent(uint8_t value){ m_nSpeedPercent = value; }
+	void setAutoDrive(bool value){ m_bAutoDrive = value; }
+	void setVisibility(ServoEnum::Visibility vis){ m_visibility = vis; }
+	void setBlindType(ServoEnum::BlindType blindType){ m_blindType = blindType; }
+	void setWindowClosed(bool value){ m_bIsWindowClosed = value; }
+
+private:
+	ServoEnum::Direction m_dir = ServoEnum::Direction::Stop;
+	uint8_t m_nOpenPercent = 0;
+	uint8_t m_nSpeedPercent = 100;
+	bool m_bAutoDrive = true;
+	ServoEnum::Visibility m_visibility = ServoEnum::Visibility::None;
+	ServoEnum::BlindType m_blindType = ServoEnum::BlindType::FullBlackout;
+	bool m_bIsWindowClosed = false;
+};
+
 struct ServoData
 {
 	IO::PinData pinM1;
@@ -19,45 +59,30 @@ struct ServoData
 	CTimer1 *timer1Obj;
 };
 
+
+
 class CServo {
 public:
 
-	enum Direction{ Open, Close, Stop};
-	enum Visibility{ Day, Night, None };
-	enum BlindType{ DayNight, FullBlackout };
-
 	CServo(ServoData data);
 	~CServo();
-
 
 	//Setters
 	void setEnablePwmFunPtr(void (CTimer1::*enablePwmFunPtr)(uint8_t));
 	void setMaxEncoderCounter(uint64_t value);
 	void setSingleEncoderStep(uint8_t value);
-	void setBlindType(BlindType blindType);
 
-	void setDirection(Direction dir);
-	void setOpenPercent(uint8_t value);
-	void setSpeedPercent(uint8_t value);
-	void setAutoDrive(bool value);
-	void setVisibility(Visibility vis);
-	void setWindowClosed(bool value);
 
 	//Getters
 	const int64_t &getMaxEncoderCounter() const;
-	BlindType getblindType();
 
-	Direction getDirection();
-	uint8_t getOpenPercent();
-	uint8_t getSpeedPercent();
-	bool isAutoDrive();
-	Visibility getVisibility();
-	bool isWindowClosed();
+
+	ServoModel *getServoModel();
 
 	//Operations
 	void processSpeed(uint8_t percent);
-	void processPercentOfOpen(uint8_t percent, Visibility vis = Visibility::None);
-	void processRunServo(Direction dir, uint8_t speed = 255);
+	void processPercentOfOpen(uint8_t percent, ServoEnum::Visibility vis = ServoEnum::Visibility::None);
+	void processRunServo(ServoEnum::Direction dir, uint8_t speed = 255);
 
 	//Operations
 private:
@@ -77,14 +102,11 @@ private:
 	uint8_t m_singleEncoderStep = 0;
 	uint64_t m_setEncoderCounter = 0;
 
-	BlindType m_blindType = BlindType::FullBlackout;
 
-	Direction m_dir = Direction::Stop;
-	uint8_t m_nOpenPercent = 0;
-	uint8_t m_nSpeedPercent = 100;
-	bool m_bAutoDrive = true;
-	Visibility m_visibility = Visibility::None;
-	bool m_bIsWindowClosed = false;
+
+	ServoModel m_servoModel;
 };
+
+
 
 #endif /* SRC_SERVO_SERVO_H_ */

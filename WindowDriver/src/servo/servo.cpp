@@ -19,6 +19,11 @@ CServo::~CServo() {
 	// TODO Auto-generated destructor stub
 }
 
+ServoModel *CServo::getServoModel()
+{
+	return &m_servoModel;
+}
+
 //Setters
 void CServo::setEnablePwmFunPtr(void (CTimer1::*enablePwmFunPtr)(uint8_t))
 {
@@ -35,83 +40,11 @@ void CServo::setSingleEncoderStep(uint8_t value)
 	m_singleEncoderStep = value;
 }
 
-void CServo::setBlindType(BlindType blindType)
-{
-	m_blindType = blindType;
-}
-
-void CServo::setDirection(CServo::Direction dir)
-{
-	m_dir = dir;
-}
-
-void CServo::setOpenPercent(uint8_t value)
-{
-	m_nOpenPercent = value;
-}
-
-void CServo::setSpeedPercent(uint8_t value)
-{
-	m_nSpeedPercent = value;
-}
-
-void CServo::setAutoDrive(bool value)
-{
-	m_bAutoDrive = value;
-}
-
-void CServo::setVisibility(Visibility vis)
-{
-	m_visibility = vis;
-}
-
-void CServo::setWindowClosed(bool value)
-{
-	m_bIsWindowClosed = value;
-}
-
 //Getters
 const int64_t &CServo::getMaxEncoderCounter() const
 {
 	return m_maxEncoderCounter;
 }
-
-CServo::BlindType CServo::getblindType()
-{
-	return m_blindType;
-}
-
-
-CServo::Direction CServo::getDirection()
-{
-	return m_dir;
-}
-
-uint8_t CServo::getOpenPercent()
-{
-	return m_nOpenPercent;
-}
-
-uint8_t CServo::getSpeedPercent()
-{
-	return m_nSpeedPercent;
-}
-
-bool CServo::isAutoDrive()
-{
-	return m_bAutoDrive;
-}
-
-CServo::Visibility CServo::getVisibility()
-{
-	return m_visibility;
-}
-
-bool CServo::isWindowClosed()
-{
-	return m_bIsWindowClosed;
-}
-
 
 //Operations
 void CServo::runClockwise(uint8_t speed)
@@ -142,11 +75,11 @@ void CServo::processSpeed(uint8_t percent)
 	(m_timer1Obj->*enablePwmFunPtr)((percent * 255) / 100);
 }
 
-void CServo::processPercentOfOpen(uint8_t percent, Visibility vis)
+void CServo::processPercentOfOpen(uint8_t percent, ServoEnum::Visibility vis)
 {
-	m_nOpenPercent = percent;
+	m_servoModel.setOpenPercent(percent);
 	uint64_t temp = (percent / 100);
-	if(m_blindType == BlindType::FullBlackout)
+	if(m_servoModel.getBlindType() == ServoEnum::BlindType::FullBlackout)
 	{
 		m_setEncoderCounter = m_maxEncoderCounter * temp;
 		return;
@@ -164,9 +97,9 @@ void CServo::processPercentOfOpen(uint8_t percent, Visibility vis)
 		{
 			//Check Type
 			uint8_t startValue;
-			if(vis == Visibility::Day)
+			if(vis == ServoEnum::Visibility::Day)
 				startValue = 2;
-			else if(vis == Visibility::Night)
+			else if(vis == ServoEnum::Visibility::Night)
 				startValue = 1;
 			else
 			{
@@ -190,13 +123,13 @@ void CServo::processPercentOfOpen(uint8_t percent, Visibility vis)
 	}
 }
 
-void CServo::processRunServo(CServo::Direction dir, uint8_t speed)
+void CServo::processRunServo(ServoEnum::Direction dir, uint8_t speed)
 {
-	if(dir == Direction::Open)
+	if(dir == ServoEnum::Direction::Open)
 	{
 		runClockwise(speed);
 	}
-	else if(dir == Direction::Close)
+	else if(dir == ServoEnum::Direction::Close)
 	{
 		runCounterClockise(speed);
 	}

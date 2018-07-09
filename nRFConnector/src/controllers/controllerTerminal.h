@@ -1,56 +1,57 @@
 /*
- * baseController.h
+ * controller.h
  *
- *  Created on: Jun 6, 2018
+ *  Created on: Jun 28, 2018
  *      Author: damian
  */
 
-#ifndef CONTROLLERS_BASECONTROLLER_H_
-#define CONTROLLERS_BASECONTROLLER_H_
+#ifndef SRC_CONTROLLERS_CONTROLLERTERMINAL_H_
+#define SRC_CONTROLLERS_CONTROLLERTERMINAL_H_
 
-#include <avr/io.h>
-#include "../dataParser/dataParser.h"
 #include "../dataParser/internalUartParser.h"
-#include "../dataParser/resultTypes.h"
 
+class CControllerTerminal {
 
-template<typename T>
-class CBaseController {
-protected:
-	CBaseController();							//Prevent consttuction but allow in getInstance
-	CBaseController(const CBaseController&) = delete;			//Prevent construction by copying
-	CBaseController& operator=(const CBaseController&) = delete;	//Prevent assigment
-	virtual ~CBaseController();							//Prevent unwanted destruction
+private:
+	CControllerTerminal();							//Prevent consttuction but allow in getInstance
+	CControllerTerminal(const CControllerTerminal&) = delete;			//Prevent construction by copying
+	CControllerTerminal& operator=(const CControllerTerminal&) = delete;	//Prevent assigment
+	~CControllerTerminal();							//Prevent unwanted destruction
 
 public:
 	//Get instance
-	static T *getInstance()
+	static CControllerTerminal *getInstance()
 	{
-		static T instance;
+		static CControllerTerminal instance;
 		return &instance;
 	}
 
-	//Process data
-	// TODO - check if this will be important to use
-	void setBusy(bool value);
-	bool isBusy();
+	//Operations
+public:
 
-	char *getBufferPtr();
-	void setDataInBuffer(char *msg);
-
+	//Signals
 	//Uart
 	void setReadyForProcessUartReceivedData(bool value){ m_bReadyForProcessReceivedUartData = value; }
-	bool isReadyForProcessUartReceivedData(){ return m_bReadyForProcessReceivedUartData; }
+	volatile bool isReadyForProcessUartReceivedData(){ return m_bReadyForProcessReceivedUartData; }
 
 	void setReadyForProcessUartResponseData(bool value){ m_bReadyForProcessUartResponseData = value; }
-	bool isReadyForProcessUartResponseData(){ return m_bReadyForProcessUartResponseData; }
+	volatile bool isReadyForProcessUartResponseData(){ return m_bReadyForProcessUartResponseData; }
 
 	//Radio data
 	void setReadyForProcessReceivedRadioData(bool value){ m_bReadyForProcessReceivedRadioData = value; }
-	bool isReadyForProcessReceivedRadioData(){ return m_bReadyForProcessReceivedRadioData; }
+	volatile bool isReadyForProcessReceivedRadioData(){ return m_bReadyForProcessReceivedRadioData; }
 
 	void setWaitingForUartResponse(bool value){ m_bIsWaitingForUartResponse = value; }
-	bool isWaitingForUartResponse(){ return m_bIsWaitingForUartResponse; }
+	volatile bool isWaitingForUartResponse(){ return m_bIsWaitingForUartResponse; }
+
+	void setReadyForProcessUartParsedMessage(bool value){ m_bReadyForProcessUartParsedMessage = value; }
+	volatile bool isReadyForProcessUartParsedMessage(){ return m_bReadyForProcessUartParsedMessage; }
+
+	void setWaitingForRadioResponse(bool val){
+		m_bWaitingForRadioResponse = val;
+		startTimer();
+	}
+	volatile bool isWaitingForRadioResponse(){ return m_bWaitingForRadioResponse; }
 
 	void setCurrentOperationType(CInternalUartParser::OperationType type){ m_currentOperationType = type; }
 	CInternalUartParser::OperationType getCurrentOperationType(){ return m_currentOperationType; }
@@ -69,43 +70,43 @@ public:
 	void stopTimer();
 	void resetTimerValue();
 
+	void processRequest();
+	void processSetTransmitterAddress();
+	void processSendDataToAir();
+
 	//Callbacks
 	void uartCallback(char *data);
 	void timerCallback();
 	void nrfCallback(void * nRF_RX_buff , uint8_t len );
 
-	//Main event - to implement in inherited classes
-	virtual void controllerEvent() = 0;
+	//Main event
+	void controllerEvent();
 
-	//Operations
-	virtual void processSendDataToAir();
-	virtual void processSetTransmitterAddress();
 
-	void clean();
+	//Memebrs
+private:
 
-protected:
 	CInternalUartParser m_internalUartParser;
 
-private:
 	static const uint8_t m_sBufferSize = 32;
 	static const uint16_t m_sTimeout = 100;			//Timeout 500ms
 	static const uint8_t m_sTimerHandle = 0;
 
 	volatile uint16_t m_nTimerValue = 0;
 	char m_dataBuffer[m_sBufferSize];
+	char *m_pReceivedBuffer = nullptr;
 
 	int8_t m_nErrorNo =  static_cast<int8_t>(ControllerResult::Ok);
-	//ControllerResult m_controllerState = ControllerResult::Dummy;
 
 	CInternalUartParser::OperationType m_currentOperationType = CInternalUartParser::OperationType::Unspecified;
 
-	//********Flags*********
+	//Flags
 	volatile bool m_bReadyForProcessReceivedRadioData = false;
 	volatile bool m_bReadyForProcessReceivedUartData = false;
 	volatile bool m_bIsWaitingForUartResponse = false;
 	volatile bool m_bReadyForProcessUartResponseData = false;
+	volatile bool m_bReadyForProcessUartParsedMessage = false;
+	volatile bool m_bWaitingForRadioResponse = false;
 };
 
-#include "baseController.cpp"
-
-#endif /* CONTROLLERS_BASECONTROLLER_H_ */
+#endif /* SRC_CONTROLLERS_CONTROLLERTERMINAL_H_ */

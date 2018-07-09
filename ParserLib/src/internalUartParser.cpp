@@ -6,16 +6,8 @@
  */
 
 #include <string.h>
-
-#include "../settings.h"
-#include "../uart/uart.h"
 #include "internalUartParser.h"
 
-void debug2()
-{
-	CUart::getInstance()->puts("here123");			//Send response by UART
-	CUart::getInstance()->puts("\n\r");				//Terminate response
-}
 
 CInternalUartParser::CInternalUartParser() {
 	// TODO Auto-generated constructor stub

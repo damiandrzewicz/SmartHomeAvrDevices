@@ -58,6 +58,8 @@ public:
 	friend void USART_UDRE_vect (void);
 	friend void USART_RXC_vect (void);
 
+	volatile uint8_t datanumber = 0;
+
 private:
 	CUart(uint16_t baud);
 	CUart(const CUart&);	//Prevent construction by copying

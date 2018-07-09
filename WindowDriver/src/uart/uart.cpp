@@ -140,7 +140,7 @@ void CUart::putc(const char data)
 void CUart::puts(const char *s)
 {
 	register char c;
-	while( (c = *(s++))) putc(c);
+	while( (c = *s++)) putc(c);
 
 }
 
@@ -210,6 +210,7 @@ void USART_RXC_vect (void)
 	}
 	else
 	{
+
 		switch(cData)
 		{
 		case 0:

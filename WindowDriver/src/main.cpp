@@ -14,10 +14,12 @@
 
 #include "servo/servo.h"
 #include "encoders/quadratureEncoder.h"
-#include "parser/uartParser.h"
 #include "controllers/servoController.h"
 
 #include "uart/uart.h"
+#include "uart/uartParser.h"
+
+
 
 #define DEVICE_ADDRESS "x0001"
 
@@ -25,33 +27,13 @@
 extern CQuadratureEncoder encoderForServo1;
 extern CQuadratureEncoder encoderForServo2;
 
-volatile bool sendflag = false;
-volatile int8_t step = 0;
-volatile bool ready = false;
+CServoController servoController1;
+CServoController servoController2;
 
-bool senduart = false;
+CUartParser uartParser;
 
 void uartCallback(char *data);
-
-void tick()
-{
-	if(!sendflag)
-	{
-
-		sendflag = true;
-	}
-}
-
-void hehe()
-{
-	static uint8_t tick = 0;
-	if(tick < 5)
-	{
-		tick++;
-		if(tick == 4)
-			ready = true;
-	}
-}
+void timerCallback();
 
 
 int main()
@@ -67,9 +49,8 @@ int main()
 
 	//Initialise timer2 singleton
 	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 155);
-	//timer2->Assign(controller->getTimerHandle(), 0, timerCallback, false);
-	timer2->Assign(1, 10, tick, true);
-	timer2->Assign(2, 100, hehe, true);
+	timer2->Assign(0, 0, timerCallback, false);
+
 
 	/*
 	 * *********************
@@ -99,88 +80,59 @@ int main()
 	CServo servo2(servoData2);	//CreateServo2 object
 
 	/*
-	 * ***********
-	 * CUartParser
-	 * ***********
+	 * Servo controllers
 	 */
-	CUartParser *uartParser = CUartParser::getInstance();	//Create uart parser
-	uartParser->registerServo(&servo1, &servo2);
+	servoController1.registerObjects(&servo1, &encoderForServo1);
+	servoController2.registerObjects(&servo2, &encoderForServo2);
 
 	/*
-	 * ******************
-	 * Servo Controllers
-	 * ******************
+	 * Uart parser
 	 */
-	CServoController controllerServo1(&servo1, &encoderForServo1);
-	CServoController controllerServo2(&servo2, &encoderForServo2);
+	uartParser.setServoModel1(servo1.getServoModel());
+	uartParser.setServoModel2(servo2.getServoModel());
+
+
 
 
 	sei();
 
-	DDRB |= (1 << PB7);
+	//DDRB |= (1 << PB7);
 
-	DDRC |= (1 << PC0);
-	DDRC |= (1 << PC1);
+	//DDRC |= (1 << PC0);
+	//DDRC |= (1 << PC1);
+
+	DDRB |= (1 << PB7);
+	PORTB &= ~(1 << PB7);
 
 
 	while(1)
 	{
+		//CUart::getInstance()->puts("damian\r");
+
+		//_delay_ms(1000);
+
 		//Uart event
 		uart->RX_STR_EVENT();
 
 		//Uart parser event
-		uartParser->event();
+		uartParser.event();
 
 		//Servo events
-		controllerServo1.event();
-		controllerServo2.event();
+		servoController1.event();
+		servoController1.event();
 
-		//_delay_ms(1000);
-
-
-
-		char buf[4];
-
-		if(sendflag)
-		{
-			//itoa(encoderForServo1.getCounter(), buf, 10);
-			//uart->puts("value: ");
-			//uart->puts(buf);
-			//uart->puts("\n\r");
-			sendflag = false;
-
-		}
-
-		if(ready)
-		{
-			ready = false;
-
-			//PORTC &= ~ (1 << PC0);
-			//PORTC |=  (1 << PC1);
-
-
-			///_delay_ms(10);
-			//PORTC &= ~(1 << PC0);
-			//PORTC &= ~(1 << PC1);
-			//timer1->setChannelB(0);
-
-		}
-
-		if(senduart)
-		{
-			//CUart::getInstance()->puts("hehe xD\n\r");
-			senduart = false;
-		}
 	}
 }
 
 void uartCallback(char *data)
 {
+	uartParser.uartCallback(data);
+}
 
-//	CUart::getInstance()->puts(data);
-//	CUart::getInstance()->puts("\r\n");
-	CUartParser::getInstance()->setDataBuffer(data);
-	CUartParser::getInstance()->processStepTransition(1);
+void timerCallback()
+{
+	servoController1.incrementtimerTick();
+	servoController1.incrementtimerTick();
 }
 
 

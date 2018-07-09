@@ -81,7 +81,7 @@ void CUart::registerEventCallback(void (*callback)(char * pBuf))
 
 char * CUart::getStr(char * buf)
 {
-	char c;
+	int c;
 	char *wsk = buf;
 	if(m_u8_asciiLine)
 	{
@@ -140,7 +140,7 @@ void CUart::putc(const char data)
 void CUart::puts(const char *s)
 {
 	register char c;
-	while( (c = *(s++))) putc(c);
+	while( (c = *s++)) putc(c);
 
 }
 
@@ -210,14 +210,28 @@ void USART_RXC_vect (void)
 	}
 	else
 	{
+
 		switch(cData)
 		{
 		case 0:
-		case 10: break;		//ignore LF sign
-		case 13: CUart::m_cuUartInstance->m_u8_asciiLine++;	//new line in buffer
+		{
+
+		}
+		case 10:
+		{
+			break;		//ignore LF sign
+		}
+		case 13:
+		{
+			CUart::m_cuUartInstance->m_u8_asciiLine++;	//new line in buffer
+		}
+
 		default:
+		{
+			//CUart::m_cuUartInstance->datanumber++;
 			CUart::m_cuUartInstance->m_u8_RxHead = u8_tmpHead;
 			CUart::m_cuUartInstance->m_cRxBuff[u8_tmpHead] = cData;
+		}
 		}
 	}
 }
