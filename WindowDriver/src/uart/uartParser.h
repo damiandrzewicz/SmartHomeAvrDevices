@@ -10,6 +10,8 @@
 
 #include "../servo/servo.h"
 #include "../../ParserLib/src/dataParser.h"
+#include "../../ParserLib/src/internalUartParser.h"
+#include "../../ParserLib/src/resultTypes.h"
 
 class CUartParser {
 public:
@@ -35,6 +37,11 @@ public:
 	volatile bool isCheckUartMessage(){ return m_bCheckUartMessage; }
 	void setReadyForProcessResponse(bool value){ m_bReadyForProcessResponse = value; }
 	bool isReadyForprocessResponse(){ return m_bReadyForProcessResponse; }
+	void setReadyForProcessUartMessage(bool value){ m_bReadyForProcessUartMessage = value; }
+	bool isReadyForProcessUartMessage(){return m_bReadyForProcessUartMessage; }
+
+	void setCurrentOperationType(CInternalUartParser::OperationType value){ m_operationType = value; }
+	CInternalUartParser::OperationType getCurrentOperationType(){ return m_operationType; }
 
 	void setResponseBuffer(char *data);
 	char *getResponseBuffer();
@@ -48,6 +55,10 @@ public:
 
 	void processSayHello(CDataParser *parser);
 	void processGetBlindType(CDataParser *parser);
+	void processSetBlindType(CDataParser *parser);
+	void processGetState(CDataParser *parser);
+	void processSetState(CDataParser *parser);
+	void processCalibrate(CDataParser *parser);
 
 	void event();
 
@@ -58,8 +69,11 @@ private:
 	char *m_pReceivedBuffer = nullptr;
 	bool m_bCheckUartMessage = false;
 	bool m_bReadyForProcessResponse = false;
+	bool m_bReadyForProcessUartMessage = false;
 
-	char m_responseBuffer[50];
+	char m_responseBuffer[100];
+	CInternalUartParser::OperationType m_operationType = CInternalUartParser::OperationType::Unspecified;
+
 };
 
 #endif /* SRC_UART_UARTPARSER_H_ */

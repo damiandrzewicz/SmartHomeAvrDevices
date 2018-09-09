@@ -104,6 +104,9 @@ int main()
 	DDRB |= (1 << PB7);
 	PORTB &= ~(1 << PB7);
 
+	//CUart::getInstance()->puts("Hello123!");			//Send response by UART
+	//CUart::getInstance()->puts("\n\r");				//Terminate response
+
 
 	while(1)
 	{
@@ -126,7 +129,18 @@ int main()
 
 void uartCallback(char *data)
 {
-	uartParser.uartCallback(data);
+	//uartParser.uartCallback(data);
+	PORTB ^= (1 << PB7);
+	char b[100];
+	strcpy(b, data);
+	static unsigned int i = 0;
+	char buf[5];
+	itoa(i++, buf, 10);
+	strcat(b, "!");
+	strcat(b, buf);
+
+	CUart::getInstance()->puts(b);
+	CUart::getInstance()->puts("\r");
 }
 
 void timerCallback()

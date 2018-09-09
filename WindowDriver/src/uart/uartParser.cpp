@@ -153,7 +153,7 @@ void CUartParser::processGetBlindType(CDataParser *parser)
 				return;
 
 			char cBlindType[3];
-			itoa(static_cast<int>(m_servoModel1->getBlindType()), cBlindType, 10);
+			itoa(static_cast<int>(blindType), cBlindType, 10);
 
 			char content[50];
 			strcpy(content, "!");
@@ -167,9 +167,182 @@ void CUartParser::processGetBlindType(CDataParser *parser)
 	}
 }
 
+void CUartParser::processSetBlindType(CDataParser *parser)
+{
+	if(validateRequest(parser->getNextToken()))
+	{
+		//Get blind number
+		char *cContent = parser->getNextToken();
+		CDataParser localParser;
+		localParser.parseData(cContent, "!");
+
+		uint8_t nBlindNo = atoi(localParser.getNextToken());
+		if(nBlindNo == 1 || nBlindNo == 2)
+		{
+			uint8_t nBlindType = atoi(localParser.getNextToken());
+			ServoEnum::BlindType blindType = static_cast<ServoEnum::BlindType>(nBlindType);
+
+			if(nBlindNo == 1)
+				m_servoModel1->setBlindType(blindType);
+			else if(nBlindNo == 2)
+				m_servoModel2->setBlindType(blindType);
+			else
+				return;
+
+			char buffer[100];
+			char content[50];
+			strcpy(content, "!ok!");
+
+			prepareBaseResponse(CUartParser::OperationType::GetBlindType, content, buffer);
+			setResponseBuffer(buffer);
+			setReadyForProcessResponse(true);
+		}
+	}
+}
+
+void CUartParser::processGetState(CDataParser *parser)
+{
+	if(validateRequest(parser->getNextToken()))
+	{
+		//Get blind number
+		char *cContent = parser->getNextToken();
+		CDataParser localParser;
+		localParser.parseData(cContent, "!");
+
+		uint8_t nBlindNo = atoi(localParser.getNextToken());
+		if(nBlindNo == 1 || nBlindNo == 2)
+		{
+			ServoEnum::Direction direction;
+			uint8_t nOpenPercent;
+			ServoEnum::Visibility visibility;
+			bool bIsWindowClosed;
+
+			char content[50];
+			if(nBlindNo == 1)
+			{
+				direction = m_servoModel1->getDirection();
+				nOpenPercent = m_servoModel1->getOpenPercent();
+				visibility = m_servoModel1->getVisibility();
+				bIsWindowClosed = m_servoModel1->isWindowClosed();
+			}
+			else if(nBlindNo == 2)
+			{
+				direction = m_servoModel1->getDirection();
+				nOpenPercent = m_servoModel2->getOpenPercent();
+				visibility = m_servoModel2->getVisibility();
+				bIsWindowClosed = m_servoModel2->isWindowClosed();
+			}
+			else
+				return;
+
+			char temp[5];
+
+			strcpy(content, "!");
+			strcat(content, itoa(static_cast<uint8_t>(direction), temp, 10));
+			strcat(content, "!");
+			strcat(content, itoa(nOpenPercent, temp, 10));
+			strcat(content, "!");
+			strcat(content, itoa(static_cast<uint8_t>(visibility), temp, 10));
+			strcat(content, "!");
+			strcat(content, itoa(static_cast<uint8_t>(bIsWindowClosed), temp, 10));
+			strcat(content, "!");
+
+			char buffer[100];
+			prepareBaseResponse(CUartParser::OperationType::GetState, content, buffer);
+			setResponseBuffer(buffer);
+			setReadyForProcessResponse(true);
+		}
+	}
+}
+
+void CUartParser::processSetState(CDataParser *parser)
+{
+	if(validateRequest(parser->getNextToken()))
+	{
+		//Get blind number
+		char *cContent = parser->getNextToken();
+		CDataParser localParser;
+		localParser.parseData(cContent, "!");
+
+		uint8_t nBlindNo = atoi(localParser.getNextToken());
+		if(nBlindNo == 1 || nBlindNo == 2)
+		{
+			ServoEnum::Direction direction = static_cast<ServoEnum::Direction>(atoi(localParser.getNextToken()));
+			uint8_t nOpenPercent = atoi(localParser.getNextToken());
+			uint8_t nSpeedPercent = atoi(localParser.getNextToken());
+			bool bAutoDrive = static_cast<bool>(atoi(localParser.getNextToken()));
+			ServoEnum::Visibility visibility = static_cast<ServoEnum::Visibility>(atoi(localParser.getNextToken()));
+			if(nBlindNo == 1)
+			{
+				m_servoModel1->setDirection(direction);
+				m_servoModel1->setOpenPercent(nOpenPercent);
+				m_servoModel1->setSpeedPercent(nSpeedPercent);
+				m_servoModel1->setAutoDrive(bAutoDrive);
+				m_servoModel1->setVisibility(visibility);
+			}
+			else if(nBlindNo == 2)
+			{
+				m_servoModel2->setDirection(direction);
+				m_servoModel2->setOpenPercent(nOpenPercent);
+				m_servoModel2->setSpeedPercent(nSpeedPercent);
+				m_servoModel2->setAutoDrive(bAutoDrive);
+				m_servoModel2->setVisibility(visibility);
+			}
+			else
+				return;
+
+			char buffer[100];
+			char content[50];
+			strcpy(content, "!ok!");
+
+			prepareBaseResponse(CUartParser::OperationType::SetState, content, buffer);
+			setResponseBuffer(buffer);
+			setReadyForProcessResponse(true);
+		}
+	}
+}
+
+void CUartParser::processCalibrate(CDataParser *parser)
+{
+	if(validateRequest(parser->getNextToken()))
+	{
+		//Get blind number
+		char *cContent = parser->getNextToken();
+		CDataParser localParser;
+		localParser.parseData(cContent, "!");
+
+		uint8_t nBlindNo = atoi(localParser.getNextToken());
+		if(nBlindNo == 1 || nBlindNo == 2)
+		{
+			//if(nBlindNo == 1)
+				//m_servoModel1->
+		}
+
+	}
+}
+
 void CUartParser::event()
 {
 	if(isCheckUartMessage())
+	{
+		CInternalUartParser internalUartParser;
+		internalUartParser.parseInputMessage(m_pReceivedBuffer);
+
+		CInternalUartParser::MessageType messageType = internalUartParser.getIncomingMessageType();
+		if(messageType == CInternalUartParser::MessageType::Request)
+		{
+
+			setCurrentOperationType(internalUartParser.getIncomingOperationType());
+			strcpy(m_pReceivedBuffer, internalUartParser.getDataBuffer());
+			setReadyForProcessUartMessage(true);
+		}
+		else
+			return;
+
+		setCheckUartMessage(false);
+	}
+
+	if(isReadyForProcessUartMessage())
 	{
 		CDataParser parser;
 		parser.parseData(m_pReceivedBuffer, "#");
@@ -184,13 +357,31 @@ void CUartParser::event()
 		{
 			processGetBlindType(&parser);
 		}
-
-		setCheckUartMessage(false);
+		else if(stringToOperationType(cOperationType) == CUartParser::OperationType::SetBlindType)
+		{
+			processSetBlindType(&parser);
+		}
+		else if(stringToOperationType(cOperationType) == CUartParser::OperationType::GetState)
+		{
+			processGetState(&parser);
+		}
+		else if(stringToOperationType(cOperationType) == CUartParser::OperationType::SetState)
+		{
+			processSetState(&parser);
+		}
+		setReadyForProcessUartMessage(false);
 	}
 
 	if(isReadyForprocessResponse())
 	{
-		CUart::getInstance()->puts(getResponseBuffer());
+		CInternalUartParser internalUartParser;
+		internalUartParser.prepareOutputMessage(
+				CInternalUartParser::MessageType::Response,
+				getCurrentOperationType(),
+				getResponseBuffer());
+
+
+		CUart::getInstance()->puts(internalUartParser.getDataBuffer());
 		CUart::getInstance()->puts("\r");
 		setReadyForProcessResponse(false);
 	}

@@ -14,9 +14,9 @@
 class ServoEnum
 {
 public:
-	enum Direction{ Open, Close, Stop};
-	enum Visibility{ Day, Night, None };
-	enum BlindType{ DayNight, FullBlackout };
+	enum class Direction{ Open, Close, Stop};
+	enum class Visibility{ Day, Night, None };
+	enum class BlindType{ DayNight, FullBlackout };
 };
 
 class ServoModel
@@ -32,6 +32,8 @@ public:
 	ServoEnum::Visibility getVisibility(){ return m_visibility; }
 	ServoEnum::BlindType getBlindType(){ return m_blindType; }
 	bool isWindowClosed(){ return m_bIsWindowClosed; }
+	uint8_t getCalibrationStep(){ return m_nCalibrateStep; }
+	bool isCalibrating(){ return m_nCalibrateStep; }
 
 	void setDirection(ServoEnum::Direction dir){ m_dir = dir; }
 	void setOpenPercent(uint8_t value){ m_nOpenPercent = value; }
@@ -40,6 +42,7 @@ public:
 	void setVisibility(ServoEnum::Visibility vis){ m_visibility = vis; }
 	void setBlindType(ServoEnum::BlindType blindType){ m_blindType = blindType; }
 	void setWindowClosed(bool value){ m_bIsWindowClosed = value; }
+	void setCalibrationStep(uint8_t value){ m_nCalibrateStep = value; }
 
 private:
 	ServoEnum::Direction m_dir = ServoEnum::Direction::Stop;
@@ -49,6 +52,7 @@ private:
 	ServoEnum::Visibility m_visibility = ServoEnum::Visibility::None;
 	ServoEnum::BlindType m_blindType = ServoEnum::BlindType::FullBlackout;
 	bool m_bIsWindowClosed = false;
+	uint8_t m_nCalibrateStep = 0;		//0 - disabled, 1 - ..., 2 - ...
 };
 
 struct ServoData
