@@ -34,7 +34,7 @@ bool CRadioDataParser::parse(char *pData)
 	m_pTokenParser->checkTrimmingChars(pData, '@');
 
 	//Parse
-	uint8_t res = static_cast<uint8_t>(m_pTokenParser->parseData(pData, "@"));
+	uint8_t res = static_cast<uint8_t>(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::At)));
 
 	//Get operation name
 	OperationName opName = parseOperationName(m_pTokenParser->getNextToken());
@@ -84,13 +84,13 @@ bool CRadioDataParser::createMessage(OperationName opName, OperationDirection op
 	if(!pResult)
 		return false;
 	//Prepare output message
-	strcpy(pResult, getAdditionalLetter(AdditionalLetter::At));
+	strcpy(pResult, getAdditionalText(AdditionalTexts::At));
 	strcat(pResult, getOperationNameText(opName));
-	strcat(pResult, getAdditionalLetter(AdditionalLetter::At));
+	strcat(pResult, getAdditionalText(AdditionalTexts::At));
 	strcat(pResult, getOperationDirectonText(opDir));
-	strcat(pResult, getAdditionalLetter(AdditionalLetter::At));
+	strcat(pResult, getAdditionalText(AdditionalTexts::At));
 	strcat(pResult, pContext);
-	strcat(pResult, getAdditionalLetter(AdditionalLetter::At));
+	strcat(pResult, getAdditionalText(AdditionalTexts::At));
 
 	return true;
 }

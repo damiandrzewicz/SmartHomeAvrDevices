@@ -9,6 +9,7 @@
 #include "../uart/uart.h"
 #include "../utils/utils.h"
 #include "../RF24/RF24.h"
+#include "../settings.h"
 
 CTerminalController::CTerminalController() {
 	m_nTimeoutValue = 500;		//timeout value
@@ -27,50 +28,79 @@ void CTerminalController::eventLoop()
 	{
 
 		//Parse data
-		m_uartParser.parse(getData());
+		if(!m_uartParser.parse(getData()))
+		{
+			m_uartParser.createErrorMsg(CUartDataParser::Error::ParserError, m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
+			m_bUartDataReady = false;
+			return;
+		}
 
 		//Get operation direction
 		CUartDataParser::OperationDirection dir = m_uartParser.getOperationDirection();
 		if(dir != CUartDataParser::OperationDirection::Request)
 		{
+			m_bUartDataReady = false;
 			return;
 		}
 
 		//Get operation name
-		CUartDataParser::OperationName opName = m_uartParser.getOperationName();
-		//CUart::getInstance()->puts(m_uartParser.getOperationNameText(opName));
-		if(opName == CUartDataParser::OperationName::SayHello)
+		m_operationName = m_uartParser.getOperationName();
+		CUart::getInstance()->puts(m_uartParser.getOperationNameText(m_operationName));
+		if(m_operationName == CUartDataParser::OperationName::SayHello)
 		{
-
+			RF24::getInstance()->setDeviceAddress(atoi(m_uartParser.getContext()));
+			m_uartParser.createMessage(
+					m_operationName,
+					CUartDataParser::OperationDirection::Response,
+					(char*)pgm_read_word( &DeviceStaticSettings[0] ),
+					m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
 		}
-		else if(opName == CUartDataParser::OperationName::SetConnectorAddress)
+		else if(m_operationName == CUartDataParser::OperationName::SetConnectorAddress)
 		{
-
+			RF24::getInstance()->setDeviceAddress(atoi(m_uartParser.getContext()));
+			m_uartParser.createMessage(
+					m_operationName,
+					CUartDataParser::OperationDirection::Response,
+					"ok",
+					m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
 		}
-		else if(opName == CUartDataParser::OperationName::GetConnectorAddress)
+		else if(m_operationName == CUartDataParser::OperationName::GetConnectorAddress)
 		{
-
+			char temp[6];
+			itoa(RF24::getInstance()->getDeviceAddressAsInt(), temp, 10);
+			m_uartParser.createMessage(
+					m_operationName,
+					CUartDataParser::OperationDirection::Response,
+					temp,
+					m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
 		}
-		else if(opName == CUartDataParser::OperationName::RestartConnector)
+		else if(m_operationName == CUartDataParser::OperationName::RestartConnector)
 		{
-
+			//TODO implement restarting connector
 		}
-		else if(opName == CUartDataParser::OperationName::SendDataToDevice)
+		else if(m_operationName == CUartDataParser::OperationName::SendDataToDevice)
 		{
-			m_radioParser.createMessage(CRadioDataParser::OperationName::PassDataByAir,
+			CUart::getInstance()->puts("hh");
+			m_radioParser.createMessage(
+					CRadioDataParser::OperationName::PassDataByAir,
 					CRadioDataParser::OperationDirection::Request,
 					m_uartParser.getContext(),
 					m_cMessage);
 			CUart::getInstance()->puts(m_cMessage);
 			RF24::getInstance()->sendDataToAir(m_cMessage);
+
+			m_bWaitingWorResponse = true;
 		}
-		else if(opName == CUartDataParser::OperationName::NotSupported)
+		else if(m_operationName == CUartDataParser::OperationName::NotSupported)
 		{
 
 		}
 		//Clear flag
 		m_bUartDataReady = false;
-		m_bWaitingWorResponse = true;
 	}
 
 	if(m_bWaitingWorResponse)
@@ -105,10 +135,12 @@ void CTerminalController::eventLoop()
 	{
 		if(m_bTimeout)
 		{
-			CUart::getInstance()->puts("timeout\r\n");
+			m_uartParser.createErrorMsg(CUartDataParser::Error::Timeout, m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
 		}
 		else
 		{
+
 			CUart::getInstance()->puts(m_pData);
 		}
 		//Clear flag

@@ -631,8 +631,16 @@ void RF24::setDeviceAddress(uint16_t value)
 
 		openWritingPipe(reinterpret_cast<uint8_t*>(buf));
 		openReadingPipe(1, reinterpret_cast<uint8_t*>(buf));
+		m_nAddress = value;
 	}
 }
+
+uint16_t RF24::getDeviceAddressAsInt()
+{
+	return m_nAddress;
+}
+
+
 
 /****************************************************************************/
 static const uint8_t child_pipe[] PROGMEM =

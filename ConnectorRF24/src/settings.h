@@ -15,5 +15,11 @@
  */
 #define NRF_MODE 0
 
+#define DEVICE_NAME "ConnectorRF24"
+
+const char *const DeviceStaticSettings[] PROGMEM = {
+		DEVICE_NAME
+};
+
 
 #endif /* SRC_SETTINGS_H_ */

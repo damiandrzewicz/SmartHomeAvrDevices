@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string.h>
+#include <stdlib.h>
 #include <avr/pgmspace.h>
 #include "../TokenParser/TokenParser.h"
 
@@ -17,8 +18,9 @@ const char *const OpDirectionText[] PROGMEM = {
 		"no"
 };
 
-const char *const AdditionalLettersText[] PROGMEM = {
-		"@"
+const char *const AdditionalText[] PROGMEM = {
+		"@",
+		"ERR"
 };
 
 class CParserInterface
@@ -26,30 +28,42 @@ class CParserInterface
 public:
 
 	enum class OperationDirection{Request, Response, NotSupported};
-	enum class AdditionalLetter{ At };
+	enum class AdditionalTexts{ At, Error };
+
+	enum class Error { Timeout, ParserError};
 
 	CParserInterface(){}
 	virtual ~CParserInterface(){}
 
 	virtual bool parse(char *pData) = 0;
 
+	bool createErrorMsg(Error err, char *pResult)
+	{
+		if(!pResult)
+				return false;
+			//Prepare output message
+			char temp[3];
+			strcpy(pResult, getAdditionalText(AdditionalTexts::At));
+			strcat(pResult, getAdditionalText(AdditionalTexts::Error));
+			strcat(pResult, getAdditionalText(AdditionalTexts::At));
+			strcat(pResult, itoa(static_cast<uint8_t>(err), temp, 10));
+			strcat(pResult, getAdditionalText(AdditionalTexts::At));
+
+			return true;
+	}
+
 	void registerTokenParser(CTokenParser *pTokenParser){m_pTokenParser = pTokenParser;}
 	bool checkTokenParser(){return (m_pTokenParser != nullptr) ? true : false;}
 
 	OperationDirection getOperationDirection(){return m_operationDirection;}
 	char *getOperationDirectonText(OperationDirection op){
-		if(op == OperationDirection::Request)
-			return (char*)pgm_read_word( &OpDirectionText[0] );
-		else if(op == OperationDirection::Request)
-			return (char*)pgm_read_word( &OpDirectionText[1] );
-		else
-			return (char*)pgm_read_word( &OpDirectionText[2] );
+		return (char*)pgm_read_word( &OpDirectionText[static_cast<uint8_t>(op)] );
 	}
 
 	const char *getContext(){return m_pContext;}
 
-	char *getAdditionalLetter(AdditionalLetter adt){
-		return (char*)pgm_read_word( &AdditionalLettersText[static_cast<uint8_t>(AdditionalLetter::At)] );
+	char *getAdditionalText(AdditionalTexts adt){
+		return (char*)pgm_read_word( &AdditionalText[static_cast<uint8_t>(adt)] );
 	}
 
 protected:

@@ -5,13 +5,15 @@
  *      Author: damian
  */
 
-#ifndef SRC_CONTROLLERS_CONNECTORCONTROLLER_H_
-#define SRC_CONTROLLERS_CONNECTORCONTROLLER_H_
+#pragma once
 
-class CConnectorController {
+#include "BaseController.h"
+
+class CConnectorController : public CBaseController {
 public:
 	CConnectorController();
 	virtual ~CConnectorController();
+
+	virtual void eventLoop() override;
 };
 
-#endif /* SRC_CONTROLLERS_CONNECTORCONTROLLER_H_ */

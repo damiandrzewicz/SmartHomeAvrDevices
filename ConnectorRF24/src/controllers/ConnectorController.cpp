@@ -8,11 +8,16 @@
 #include "ConnectorController.h"
 
 CConnectorController::CConnectorController() {
-	// TODO Auto-generated constructor stub
+	m_nTimeoutValue = 100;		//timeout value
 
 }
 
 CConnectorController::~CConnectorController() {
 	// TODO Auto-generated destructor stub
+}
+
+void CConnectorController::eventLoop()
+{
+
 }
 

@@ -822,6 +822,8 @@ public:
 
 	bool isNewLine();
 
+	uint16_t getDeviceAddressAsInt();
+
 private:
 	//Cnstructors
 	RF24();	//Prevent consttuction but allow in getInstance
@@ -945,6 +947,8 @@ private:
 
 	void (*pCallback)(char *data, uint8_t nLenght);
 	bool m_bIsSending = false;
+
+	uint16_t m_nAddress;
 
 };
 

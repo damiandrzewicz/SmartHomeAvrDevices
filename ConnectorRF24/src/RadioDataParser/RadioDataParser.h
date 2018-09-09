@@ -17,7 +17,7 @@ class CRadioDataParser : public CParserInterface {
 public:
 	enum class OperationName{
 		PassDataByAir,
-		NotSupported = 100
+		NotSupported
 	};
 
 	CRadioDataParser();

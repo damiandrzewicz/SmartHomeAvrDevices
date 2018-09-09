@@ -21,7 +21,7 @@ public:
 		SetConnectorAddress,
 		GetConnectorAddress,
 		RestartConnector,
-		NotSupported = 100
+		NotSupported
 	};
 
 	CUartDataParser();

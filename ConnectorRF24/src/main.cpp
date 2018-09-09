@@ -8,6 +8,7 @@
 #include "timer/timer.h"
 #include "portability.h"
 #include "utils/utils.h"
+#include "settings.h"
 #include "controllers/BaseController.h"
 
 #include "TokenParser/TokenParser.h"
@@ -27,10 +28,10 @@ void tick()
 	#include "controllers/TerminalController.h"
 	CTerminalController controller;
 #elif NRF_MODE == 1
-#include "controllers/ConnectorController.h"
-	//TODO create object
+	#include "controllers/ConnectorController.h"
+	CConnectorController controller;
 #elif NRF_MODE == 2
-#include "controllers/StandaloneDeviceController.h"
+	#include "controllers/StandaloneDeviceController.h"
 	//TODO create object
 #endif
 
