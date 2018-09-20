@@ -16,12 +16,12 @@ blabla..
 
 #### Data format
 
-Data frame exchanged between two connectors has specific format. All parts of requests and responses are divided by "@" sign. 
+Data frame exchanged between two connectors has specific format. All parts of requests and responses are divided by "#" sign. 
 
 Main data frame is following:
 
 ```json
-@{operation}@{direction}@{data}@
+#{operation}#{direction}#{data}#
 ```
 
 Where:
@@ -34,27 +34,30 @@ Where:
 
 Main response data frame is following:
 
-```
-@{operation}@{direction}@{state}@{data}@
+```jaon
+#{operation}#{direction}#{data}#
 ```
 
-Additional parameter is {state} which is interpreted like:
+In case of error device sends response:
 
-- "ok" - execution of request was successful,
-- "err" - error occurred during executing request
+```
+#ERR#{mainErrorNumber}#{minorErrorNumber}#
+```
+
+
 
 Here are following operations:
 
-- passData - data are sent in special format frame as request to another device. this request is used for pass data between devices connected to nRF connectors.
+- PassDataByAir- data are sent in special format frame as request to another device. This request is used for pass data between devices connected to nRF connectors.
 
   ```json
-  @sendData@req@ThisIsExampleOfContent@
+  @PDBA@req@ThisIsExampleOfContent@
   ```
 
   If requests is processed without any errors then response is sent back:
 
   ```json
-  @sendData@res@ThisIsExampleOfResponse@
+  @PDBA@res@ok@ThisIsExampleOfResponse@
   ```
 
 

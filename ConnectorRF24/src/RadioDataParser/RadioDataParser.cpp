@@ -31,21 +31,31 @@ bool CRadioDataParser::parse(char *pData)
 		return false;
 
 	//Check trimming chars
-	m_pTokenParser->checkTrimmingChars(pData, '@');
+	if(m_pTokenParser->checkTrimmingChars(pData, '#') != TokenParseResult::Ok)
+	{
+		return false;
+	}
 
 	//Parse
-	uint8_t res = static_cast<uint8_t>(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::At)));
+	if(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::Hash)) != TokenParseResult::Ok)
+	{
+		return false;
+	}
 
 	//Get operation name
-	OperationName opName = parseOperationName(m_pTokenParser->getNextToken());
-	if(opName != OperationName::NotSupported)
-		setOperationName(opName);
-		//m_operationName = opName;
+	char *cc = m_pTokenParser->getNextToken();
+	OperationName opName = parseOperationName(cc);
+	if(opName == OperationName::NotSupported)
+		return false;
+
+	setOperationName(opName);
 
 	//Get operation direction
 	OperationDirection opDir = CParserInterface::parseOperationDirection(m_pTokenParser->getNextToken());
-	if(opDir != OperationDirection::NotSupported)
-		setOperationDirection(opDir);
+	if(opDir == OperationDirection::NotSupported)
+		return false;
+
+	setOperationDirection(opDir);
 
 	char *pContext = m_pTokenParser->getNextToken();
 	if(pContext != nullptr && strcmp(pContext, PSTR("\0")))
@@ -78,21 +88,25 @@ void CRadioDataParser::setOperationName(OperationName op)
 	CParserInterface::setOperationName(static_cast<uint8_t>(op));
 }
 
-
 bool CRadioDataParser::createMessage(OperationName opName, OperationDirection opDir, const char *pContext, char *pResult)
 {
 	if(!pResult)
 		return false;
 	//Prepare output message
-	strcpy(pResult, getAdditionalText(AdditionalTexts::At));
+	strcpy(pResult, getAdditionalText(AdditionalTexts::Hash));
 	strcat(pResult, getOperationNameText(opName));
-	strcat(pResult, getAdditionalText(AdditionalTexts::At));
+	strcat(pResult, getAdditionalText(AdditionalTexts::Hash));
 	strcat(pResult, getOperationDirectonText(opDir));
-	strcat(pResult, getAdditionalText(AdditionalTexts::At));
+	strcat(pResult, getAdditionalText(AdditionalTexts::Hash));
 	strcat(pResult, pContext);
-	strcat(pResult, getAdditionalText(AdditionalTexts::At));
+	strcat(pResult, getAdditionalText(AdditionalTexts::Hash));
 
 	return true;
+}
+
+bool CRadioDataParser::createErrorMsg(Error err, char *pResult)
+{
+	return CParserInterface::createErrorMsg(err, AdditionalTexts::Hash, pResult);
 }
 
 

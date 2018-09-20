@@ -26,7 +26,6 @@ void CTerminalController::eventLoop()
 	//Check if something received from UART
 	if(m_bUartDataReady)
 	{
-
 		//Parse data
 		if(!m_uartParser.parse(getData()))
 		{
@@ -40,13 +39,15 @@ void CTerminalController::eventLoop()
 		CUartDataParser::OperationDirection dir = m_uartParser.getOperationDirection();
 		if(dir != CUartDataParser::OperationDirection::Request)
 		{
+			m_uartParser.createErrorMsg(CUartDataParser::Error::WrongOperationDirection, m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
 			m_bUartDataReady = false;
 			return;
 		}
 
 		//Get operation name
 		m_operationName = m_uartParser.getOperationName();
-		CUart::getInstance()->puts(m_uartParser.getOperationNameText(m_operationName));
+		//CUart::getInstance()->puts(m_uartParser.getOperationNameText(m_operationName));
 		if(m_operationName == CUartDataParser::OperationName::SayHello)
 		{
 			RF24::getInstance()->setDeviceAddress(atoi(m_uartParser.getContext()));
@@ -84,47 +85,52 @@ void CTerminalController::eventLoop()
 		}
 		else if(m_operationName == CUartDataParser::OperationName::SendDataToDevice)
 		{
-			CUart::getInstance()->puts("hh");
+			//CUart::getInstance()->puts("hh1\r\n");
 			m_radioParser.createMessage(
 					CRadioDataParser::OperationName::PassDataByAir,
 					CRadioDataParser::OperationDirection::Request,
 					m_uartParser.getContext(),
 					m_cMessage);
-			CUart::getInstance()->puts(m_cMessage);
+			//CUart::getInstance()->puts(m_cMessage);
 			RF24::getInstance()->sendDataToAir(m_cMessage);
 
-			m_bWaitingWorResponse = true;
+			m_bWaitingForResponse = true;
+			//CUart::getInstance()->puts("hh2\r\n");
 		}
 		else if(m_operationName == CUartDataParser::OperationName::NotSupported)
 		{
-
+			m_uartParser.createErrorMsg(CUartDataParser::Error::WrongOperationName, m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
+			m_bUartDataReady = false;
+			return;
 		}
 		//Clear flag
 		m_bUartDataReady = false;
 	}
 
-	if(m_bWaitingWorResponse)
+	if(m_bWaitingForResponse)
 	{
 		//Check if data recevied
 		if(m_bRadioDataReady)
-		{
+		{//CUart::getInstance()->puts("radiodatareadytimer\r\n");
 			//Clear flags
-			m_bWaitingWorResponse = false;
+			m_bWaitingForResponse = false;
 			m_bRadioDataReady = false;
 			m_bProcessResponseStep = true;
 		}
 		else
 		{
+			//CUart::getInstance()->putint(m_lTime, 10);
+			//CUart::getInstance()->puts("\r\n");
 			//Check timeout
 			if(!m_lTime)
-			{CUart::getInstance()->puts("here\r\n");
+			{//CUart::getInstance()->puts("timo=0\r\n");
 				m_lTime = millis();
 			}
 
 			else if( (millis () - m_lTime) > m_nTimeoutValue)
 			{
-				m_bWaitingWorResponse = false;
-				m_lTime = 0;
+				m_bWaitingForResponse = false;
 				m_bTimeout = true;
 				m_bProcessResponseStep = true;
 			}
@@ -134,18 +140,23 @@ void CTerminalController::eventLoop()
 	if(m_bProcessResponseStep)
 	{
 		if(m_bTimeout)
-		{
+		{//CUart::getInstance()->puts("hh3\r\n");
 			m_uartParser.createErrorMsg(CUartDataParser::Error::Timeout, m_cMessage);
 			CUart::getInstance()->puts(m_cMessage);
 		}
 		else
 		{
-
-			CUart::getInstance()->puts(m_pData);
+			m_uartParser.createMessage(
+					m_operationName,
+					CUartDataParser::OperationDirection::Response,
+					m_pData,
+					m_cMessage);
+			CUart::getInstance()->puts(m_cMessage);
 		}
 		//Clear flag
 		m_bProcessResponseStep = false;
 		m_bTimeout = false;
+		m_lTime = 0;
 	}
 }
 

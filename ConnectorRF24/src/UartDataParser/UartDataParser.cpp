@@ -33,41 +33,52 @@ bool CUartDataParser::parse(char *pData)
 	if(!checkTokenParser())
 			return false;
 
-		//Check trimming chars
-		if(m_pTokenParser->checkTrimmingChars(pData, '@') != TokenParseResult::Ok)
-		{
-			return false;
-		}
+	//Check trimming chars
+	if(m_pTokenParser->checkTrimmingChars(pData, '@') != TokenParseResult::Ok)
+	{
+		return false;
+	}
 
 
-		//Parse
-		if(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::At)) != TokenParseResult::Ok)
-		{
-			return false;
-		}
+	//Parse
+	if(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::At)) != TokenParseResult::Ok)
+	{
+		return false;
+	}
 
 
-		//Get operation name
-		char *cc = m_pTokenParser->getNextToken();
-		CUart::getInstance()->puts(cc);
-		OperationName opName = parseOperationName(cc);
-		CUart::getInstance()->puts("\r\n");
-		CUart::getInstance()->putint(static_cast<uint8_t>(opName), 10);
-		CUart::getInstance()->puts("\r\n");
-		CUart::getInstance()->puts(getOperationNameText(opName));
+	//Get operation name
+	char *cc = m_pTokenParser->getNextToken();
+	//CUart::getInstance()->puts(cc);
+	OperationName opName = parseOperationName(cc);
 
-		setOperationName(opName);
+	if(opName == OperationName::NotSupported)
+		return false;
 
 
-		//Get operation direction
-		OperationDirection opDir = CParserInterface::parseOperationDirection(m_pTokenParser->getNextToken());
-		setOperationDirection(opDir);
+//		CUart::getInstance()->puts("\r\n");
+//		CUart::getInstance()->putint(static_cast<uint8_t>(opName), 10);
+//		CUart::getInstance()->puts("\r\n");
+//		CUart::getInstance()->puts(getOperationNameText(opName));
+//		CUart::getInstance()->puts("here1\r\n");
 
-		char *pContext = m_pTokenParser->getNextToken();
-		if(pContext != nullptr && strcmp(pContext, PSTR("\0")))
-				m_pContext = pContext;
+	setOperationName(opName);
 
-		return true;
+
+	//Get operation direction
+	OperationDirection opDir = CParserInterface::parseOperationDirection(m_pTokenParser->getNextToken());
+	if(opDir == OperationDirection::NotSupported)
+		return false;
+
+	setOperationDirection(opDir);
+
+	char *pContext = m_pTokenParser->getNextToken();
+	if(pContext != nullptr && strcmp(pContext, PSTR("\0")))
+			m_pContext = pContext;
+	else
+		return false;
+
+	return true;
 }
 
 bool CUartDataParser::createMessage(OperationName opName, OperationDirection opDir, char *pContext, char *pResult)
@@ -115,5 +126,10 @@ CUartDataParser::OperationName CUartDataParser::parseOperationName(char *pOperat
 		return OperationName::SetConnectorAddress;
 	else /*if(!strcmp(pOperationName, getOperationNameText(OperationName::NotSupported)))*/
 		return OperationName::NotSupported;
+}
+
+bool CUartDataParser::createErrorMsg(Error err, char *pResult)
+{
+	return CParserInterface::createErrorMsg(err, AdditionalTexts::At, pResult);
 }
 

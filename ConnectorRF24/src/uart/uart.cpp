@@ -141,7 +141,7 @@ void CUart::puts(const char *s)
 {
 	register char c;
 	while( (c = *s++)) putc(c);
-
+	putc('\r');
 }
 
 void CUart::puts_P(const char *s)		// wysy�a �a�cuch z pami�ci RAM na UART

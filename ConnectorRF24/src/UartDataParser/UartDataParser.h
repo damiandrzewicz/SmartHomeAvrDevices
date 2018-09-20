@@ -30,6 +30,8 @@ public:
 	virtual bool parse(char *pData) override;
 	bool createMessage(OperationName opName, OperationDirection opDir, char *pContext, char *pResult = nullptr);
 
+	virtual bool createErrorMsg(Error err, char *pResult) override;
+
 	OperationName getOperationName();
 	char *getOperationNameText(OperationName op);
 

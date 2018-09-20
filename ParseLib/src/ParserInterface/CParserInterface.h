@@ -20,6 +20,7 @@ const char *const OpDirectionText[] PROGMEM = {
 
 const char *const AdditionalText[] PROGMEM = {
 		"@",
+		"#",
 		"ERR"
 };
 
@@ -28,29 +29,20 @@ class CParserInterface
 public:
 
 	enum class OperationDirection{Request, Response, NotSupported};
-	enum class AdditionalTexts{ At, Error };
+	enum class AdditionalTexts{ At, Hash, Error };
 
-	enum class Error { Timeout, ParserError};
+	enum class Error {
+		Timeout,
+		ParserError,
+		WrongOperationDirection,
+		WrongOperationName};
 
 	CParserInterface(){}
 	virtual ~CParserInterface(){}
 
 	virtual bool parse(char *pData) = 0;
 
-	bool createErrorMsg(Error err, char *pResult)
-	{
-		if(!pResult)
-				return false;
-			//Prepare output message
-			char temp[3];
-			strcpy(pResult, getAdditionalText(AdditionalTexts::At));
-			strcat(pResult, getAdditionalText(AdditionalTexts::Error));
-			strcat(pResult, getAdditionalText(AdditionalTexts::At));
-			strcat(pResult, itoa(static_cast<uint8_t>(err), temp, 10));
-			strcat(pResult, getAdditionalText(AdditionalTexts::At));
-
-			return true;
-	}
+	virtual bool createErrorMsg(Error err, char *pResult) = 0;
 
 	void registerTokenParser(CTokenParser *pTokenParser){m_pTokenParser = pTokenParser;}
 	bool checkTokenParser(){return (m_pTokenParser != nullptr) ? true : false;}
@@ -67,6 +59,21 @@ public:
 	}
 
 protected:
+	bool createErrorMsg(Error err, AdditionalTexts ltr, char *pResult)
+	{
+		if(!pResult)
+				return false;
+			//Prepare output message
+			char temp[3];
+			strcpy(pResult, getAdditionalText(ltr));
+			strcat(pResult, getAdditionalText(AdditionalTexts::Error));
+			strcat(pResult, getAdditionalText(ltr));
+			strcat(pResult, itoa(static_cast<uint8_t>(err), temp, 10));
+			strcat(pResult, getAdditionalText(ltr));
+
+			return true;
+	}
+
 	void setOperationDirection(OperationDirection op){m_operationDirection = op;}
 
 	virtual OperationDirection parseOperationDirection(char *poperationDirection){

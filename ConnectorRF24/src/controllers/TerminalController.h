@@ -15,6 +15,11 @@ public:
 	virtual ~CTerminalController();
 
 	virtual void eventLoop() override;
+
+private:
+	CUartDataParser::OperationName m_operationName;
+	bool m_bWaitingForResponse = false;
+	bool m_bProcessResponseStep = false;
 };
 
 

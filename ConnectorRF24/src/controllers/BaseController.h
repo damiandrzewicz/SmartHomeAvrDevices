@@ -33,12 +33,11 @@ protected:
 	CUartDataParser m_uartParser;
 	char *m_pData;
 	char m_cMessage[50];
-	CUartDataParser::OperationName m_operationName;
+
 
 	bool m_bRadioDataReady = false;
 	bool m_bUartDataReady = false;
-	bool m_bWaitingWorResponse = false;
-	bool m_bProcessResponseStep = false;
+
 	bool m_bTimeout = false;
 	unsigned long m_lTime = 0;
 	uint16_t m_nTimeoutValue = 300;		//300 ms
