@@ -11,13 +11,15 @@
 #include "portability.h"
 #include "timer/timer.h"
 #include "io/io.h"
+#include "uart/uart.h"
+#include "utils/utils.h"
 
 #include "servo/servo.h"
 #include "encoders/quadratureEncoder.h"
 #include "controllers/servoController.h"
 
-#include "uart/uart.h"
-#include "uart/uartParser.h"
+#include "controllers/ServoModelController.h"
+
 
 
 
@@ -30,7 +32,7 @@ extern CQuadratureEncoder encoderForServo2;
 CServoController servoController1;
 CServoController servoController2;
 
-CUartParser uartParser;
+CServoModelController servoModelController;
 
 void uartCallback(char *data);
 void timerCallback();
@@ -48,8 +50,8 @@ int main()
 	CTimer1 * timer1 = CTimer1::getInstance();		//Timer1 with PWM mode - 8bit, non inverse
 
 	//Initialise timer2 singleton
-	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 155);
-	timer2->Assign(0, 0, timerCallback, false);
+	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 14);
+	timer2->Assign(0, 0, increaseMillis, true);
 
 
 	/*
@@ -86,10 +88,10 @@ int main()
 	servoController2.registerObjects(&servo2, &encoderForServo2);
 
 	/*
-	 * Uart parser
+	 * Servo models controller
 	 */
-	uartParser.setServoModel1(servo1.getServoModel());
-	uartParser.setServoModel2(servo2.getServoModel());
+	servoModelController.setServoModel1(servo1.getServoModel());
+	servoModelController.setServoModel2(servo2.getServoModel());
 
 
 
@@ -118,7 +120,7 @@ int main()
 		uart->RX_STR_EVENT();
 
 		//Uart parser event
-		uartParser.event();
+		servoModelController.loopEvent();
 
 		//Servo events
 		servoController1.event();
@@ -129,18 +131,10 @@ int main()
 
 void uartCallback(char *data)
 {
-	//uartParser.uartCallback(data);
-	PORTB ^= (1 << PB7);
-	char b[100];
-	strcpy(b, data);
-	static unsigned int i = 0;
-	char buf[5];
-	itoa(i++, buf, 10);
-	strcat(b, "!");
-	strcat(b, buf);
-
-	CUart::getInstance()->puts(b);
-	CUart::getInstance()->puts("\r");
+	CUart::getInstance()->puts("Received Uart:");
+	CUart::getInstance()->puts(data);
+	CUart::getInstance()->puts("\r\n");
+	servoModelController.uartDataReady(data);
 }
 
 void timerCallback()

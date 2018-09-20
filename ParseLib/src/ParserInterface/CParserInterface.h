@@ -21,6 +21,8 @@ const char *const OpDirectionText[] PROGMEM = {
 const char *const AdditionalText[] PROGMEM = {
 		"@",
 		"#",
+		"!",
+		"$",	//For Params
 		"ERR"
 };
 
@@ -29,7 +31,7 @@ class CParserInterface
 public:
 
 	enum class OperationDirection{Request, Response, NotSupported};
-	enum class AdditionalTexts{ At, Hash, Error };
+	enum class AdditionalTexts{ At, Hash, ExclMark, Dollar, Error };
 
 	enum class Error {
 		Timeout,

@@ -141,6 +141,7 @@ void CUart::puts(const char *s)
 {
 	register char c;
 	while( (c = *s++)) putc(c);
+	putc('\r');
 
 }
 
