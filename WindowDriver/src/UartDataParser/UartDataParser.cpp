@@ -39,13 +39,11 @@ bool CUartDataParser::parse(char *pData)
 		return false;
 	}
 
-
 	//Parse
 	if(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::At)) != TokenParseResult::Ok)
 	{
 		return false;
 	}
-
 
 	//Get operation name
 	char *cc = m_pTokenParser->getNextToken();

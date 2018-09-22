@@ -6,7 +6,6 @@
  */
 
 #include "TokenParser.h"
-//#include "../uart/uart.h"
 
 #include <string.h>
 #include <stdlib.h>

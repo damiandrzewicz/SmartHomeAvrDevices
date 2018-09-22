@@ -8,8 +8,8 @@
 #include "BaseController.h"
 
 CBaseController::CBaseController() {
-	m_radioParser.registerTokenParser(&m_tokenParser);
-	m_uartParser.registerTokenParser(&m_tokenParser);
+	//m_radioParser.registerTokenParser(&m_tokenParser);
+	//m_uartParser.registerTokenParser(&m_tokenParser);
 }
 
 CBaseController::~CBaseController() {

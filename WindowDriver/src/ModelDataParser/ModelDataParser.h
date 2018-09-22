@@ -10,12 +10,13 @@
 #include <avr/pgmspace.h>
 #include <avr/io.h>
 #include "ParserInterface/CParserInterface.h"
+#include "../servo/servo.h"
+#include "ModelDataContainer.h"
 
 class CModelDataParser : public CParserInterface {
 public:
 	enum class OperationName
 	{
-		SayHello,
 		SetBlindType,
 		GetBlindType,
 		SetState,
@@ -35,9 +36,24 @@ public:
 	OperationName getOperationName();
 	char *getOperationNameText(OperationName op);
 
-protected:
-	void setOperationName(OperationName op);
+	bool parseBlindNo(uint8_t &iBlindNo);
 
+	bool parseGetBlindType(SBlindType &refBlindType);
+	bool parseGetBlindState(SBlindState &refBlindState);
+
+	//bool parseSetBlindType(SBlindType &refBlindState);
+	//bool parseSetBlindState()
+
+	bool createGetBlindTypeContext(SBlindType &refBlindType, char *pResult = nullptr);
+	bool createGetBlindStateContext(SBlindState &refBlindState, char *pResult = nullptr);
+
+protected:
+
+	void setOperationName(OperationName op);
 	OperationName parseOperationName(char *pOperationName);
+
+	char m_modelContextArr[15];
+
+	bool parseSayHelloContext();
 };
 

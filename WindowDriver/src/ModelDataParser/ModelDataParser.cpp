@@ -7,8 +7,10 @@
 #include <string.h>
 #include "ModelDataParser.h"
 
+#include "../uart/uart.h"
+#include "TokenParser/TokenParser.h"
+
 const char *const OpNameText[] PROGMEM = {
-		"SH",			//SayHello,
 		"SBT",			//SetBlindType,
 		"GBT",			//GetBlindType,
 		"SS",			//SetState,
@@ -37,31 +39,18 @@ bool CModelDataParser::parse(char *pData)
 		return false;
 	}
 
-
 	//Parse
 	if(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::ExclMark)) != TokenParseResult::Ok)
 	{
 		return false;
 	}
 
-
 	//Get operation name
-	char *cc = m_pTokenParser->getNextToken();
-	//CUart::getInstance()->puts(cc);
-	OperationName opName = parseOperationName(cc);
-
+	OperationName opName = parseOperationName(m_pTokenParser->getNextToken());
 	if(opName == OperationName::NotSupported)
 		return false;
 
-
-//		CUart::getInstance()->puts("\r\n");
-//		CUart::getInstance()->putint(static_cast<uint8_t>(opName), 10);
-//		CUart::getInstance()->puts("\r\n");
-//		CUart::getInstance()->puts(getOperationNameText(opName));
-//		CUart::getInstance()->puts("here1\r\n");
-
 	setOperationName(opName);
-
 
 	//Get operation direction
 	OperationDirection opDir = CParserInterface::parseOperationDirection(m_pTokenParser->getNextToken());
@@ -72,7 +61,7 @@ bool CModelDataParser::parse(char *pData)
 
 	char *pContext = m_pTokenParser->getNextToken();
 	if(pContext != nullptr && strcmp(pContext, PSTR("\0")))
-			m_pContext = pContext;
+		m_pContext = pContext;
 	else
 		return false;
 
@@ -82,22 +71,23 @@ bool CModelDataParser::parse(char *pData)
 bool CModelDataParser::createMessage(OperationName opName, OperationDirection opDir, char *pContext, char *pResult)
 {
 	if(!pResult)
-			return false;
-		//Prepare output message
-		strcpy(pResult, getAdditionalText(AdditionalTexts::ExclMark));
-		strcat(pResult, getOperationNameText(opName));
-		strcat(pResult, getAdditionalText(AdditionalTexts::ExclMark));
-		strcat(pResult, getOperationDirectonText(opDir));
-		strcat(pResult, getAdditionalText(AdditionalTexts::ExclMark));
-		strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
-		strcat(pResult, pContext);
-		strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
-		strcat(pResult, getAdditionalText(AdditionalTexts::ExclMark));
+		return false;
 
-		return true;
+	//Prepare output message
+	strcpy(pResult, getAdditionalText(AdditionalTexts::ExclMark));
+	strcat(pResult, getOperationNameText(opName));
+	strcat(pResult, getAdditionalText(AdditionalTexts::ExclMark));
+	strcat(pResult, getOperationDirectonText(opDir));
+	strcat(pResult, getAdditionalText(AdditionalTexts::ExclMark));
+	//strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, pContext);
+	//strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, getAdditionalText(AdditionalTexts::ExclMark));
+
+	return true;
 }
 
-CModelDataParser::OperationName CUartDataParser::getOperationName()
+CModelDataParser::OperationName CModelDataParser::getOperationName()
 {
 	return static_cast<OperationName>(CParserInterface::getOperationNameAsUint());
 }
@@ -114,9 +104,7 @@ char *CModelDataParser::getOperationNameText(OperationName op)
 
 CModelDataParser::OperationName CModelDataParser::parseOperationName(char *pOperationName)
 {
-	if(!strcmp(pOperationName, getOperationNameText(OperationName::SayHello)))
-		return OperationName::SayHello;
-	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SetBlindType)))
+	if(!strcmp(pOperationName, getOperationNameText(OperationName::SetBlindType)))
 		return OperationName::SetBlindType;
 	else if(!strcmp(pOperationName, getOperationNameText(OperationName::GetBlindType)))
 		return OperationName::GetBlindType;
@@ -133,5 +121,67 @@ CModelDataParser::OperationName CModelDataParser::parseOperationName(char *pOper
 bool CModelDataParser::createErrorMsg(Error err, char *pResult)
 {
 	return CParserInterface::createErrorMsg(err, AdditionalTexts::ExclMark, pResult);
+}
+
+bool CModelDataParser::parseBlindNo(uint8_t &nBlindNo)
+{
+	strcpy(m_modelContextArr, m_pContext);
+
+	if(!checkTokenParser())
+			return false;
+
+	//Check trimming chars
+	if(m_pTokenParser->checkTrimmingChars(m_modelContextArr, '$') != TokenParseResult::Ok)
+	{
+		return false;
+	}
+	//Parse
+	if(m_pTokenParser->parseData(m_modelContextArr, getAdditionalText(AdditionalTexts::Dollar)) != TokenParseResult::Ok)
+	{
+		return false;
+	}
+
+	uint8_t blindNo = atoi(m_pTokenParser->getNextToken());
+
+	if(blindNo == 1 || blindNo == 2)
+	{
+		nBlindNo = blindNo;	//Save data
+		return true;
+	}
+	else
+		return false;
+}
+
+bool CModelDataParser::parseGetBlindType(SBlindType &refBlindType)
+{
+	if(!parseBlindNo(refBlindType.nBlindNo))
+		return false;
+
+	return true;
+}
+
+
+bool CModelDataParser::createGetBlindTypeContext(SBlindType &refBlindType, char *pResult)
+{
+	if(pResult == nullptr)
+		return false;
+
+	char cBlindType[3];
+	itoa(static_cast<uint8_t>(refBlindType.blindType), cBlindType, 10);
+
+	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, cBlindType);
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+
+	return true;
+}
+
+
+bool CModelDataParser::createGetBlindStateContext(SBlindState &refBlindState, char *pResult)
+{
+	if(pResult == nullptr)
+		return false;
+
+	//TODO
 }
 

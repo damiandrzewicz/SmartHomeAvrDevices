@@ -39,7 +39,8 @@ private:
 	void cleanBuffer();
 
 	//members
-private:
+//private:
+public:
 	static const uint8_t m_sBufferRows = 6;
 	static const uint8_t m_sBufferColumns = 18;
 	char m_buffer[m_sBufferRows][m_sBufferColumns] ;

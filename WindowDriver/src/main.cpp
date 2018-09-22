@@ -106,8 +106,8 @@ int main()
 	DDRB |= (1 << PB7);
 	PORTB &= ~(1 << PB7);
 
-	//CUart::getInstance()->puts("Hello123!");			//Send response by UART
-	//CUart::getInstance()->puts("\n\r");				//Terminate response
+	CUart::getInstance()->puts("Hello123!");			//Send response by UART
+	CUart::getInstance()->puts("\n\r");				//Terminate response
 
 
 	while(1)

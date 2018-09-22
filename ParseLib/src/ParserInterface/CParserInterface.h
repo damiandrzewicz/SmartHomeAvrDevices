@@ -37,7 +37,8 @@ public:
 		Timeout,
 		ParserError,
 		WrongOperationDirection,
-		WrongOperationName};
+		WrongOperationName,
+		ProcessingError};
 
 	CParserInterface(){}
 	virtual ~CParserInterface(){}
@@ -54,7 +55,7 @@ public:
 		return (char*)pgm_read_word( &OpDirectionText[static_cast<uint8_t>(op)] );
 	}
 
-	const char *getContext(){return m_pContext;}
+	char *getContext(){return m_pContext;}
 
 	char *getAdditionalText(AdditionalTexts adt){
 		return (char*)pgm_read_word( &AdditionalText[static_cast<uint8_t>(adt)] );
@@ -94,6 +95,7 @@ protected:
 protected:
 	char *m_pContext = nullptr;
 	CTokenParser *m_pTokenParser = nullptr;
+	//CTokenParser m_pTokenParser;
 
 private:
 	OperationDirection m_operationDirection;
