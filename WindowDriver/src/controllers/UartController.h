@@ -8,14 +8,15 @@
 #pragma once
 
 #include "TokenParser/TokenParser.h"
-#include "../UartDataParser/UartDataParser.h"
-#include "../ModelDataParser/ModelDataParser.h"
-#include "../servo/servo.h"
 
-class CServoModelController {
+#include "../ConnectorUartDataParser/ConnectorUartDataParser.h"
+#include "../servo/servo.h"
+#include "../WindowUartDataParser/WindowUartDataParser.h"
+
+class CUartController {
 public:
-	CServoModelController();
-	~CServoModelController();
+	CUartController();
+	~CUartController();
 
 	void uartDataReady(char *pData);
 	char *getData();
@@ -29,14 +30,20 @@ protected:
 	void clearNotofications();
 
 	bool readBlindType(SBlindType &refBlindType);
+	bool processBlindType(SBlindType &refBlindType);
+
+	bool readBlindState(SBlindState &refBlindState);
+	bool processBlindState(SBlindState &refBlindState);
+
+	bool processSetCalibrate(SBlindCalibrate &refBlindCalibrate);
 
 	bool processModelMessage();
 	bool parseGetBlindType();
 
 private:
 	CTokenParser m_tokenParser;
-	CUartDataParser m_uartParser;
-	CModelDataParser m_modelParser;
+	CConnectorUartDataParser m_connectorUartParser;
+	CWindowUartDataParser m_windowUartParser;
 
 	char *m_pData;
 	char m_cUartMessage[50];
@@ -52,7 +59,5 @@ private:
 	bool m_bProcessResponseStep = false;
 
 	ServoModel *m_servoModelArr[2];
-	//ServoModel *m_servoModel1 = nullptr;
-	//ServoModel *m_servoModel2 = nullptr;
 };
 

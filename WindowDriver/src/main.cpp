@@ -18,7 +18,7 @@
 #include "encoders/quadratureEncoder.h"
 #include "controllers/servoController.h"
 
-#include "controllers/ServoModelController.h"
+#include "controllers/UartController.h"
 
 
 
@@ -32,7 +32,7 @@ extern CQuadratureEncoder encoderForServo2;
 CServoController servoController1;
 CServoController servoController2;
 
-CServoModelController servoModelController;
+CUartController uartController;
 
 void uartCallback(char *data);
 void timerCallback();
@@ -90,8 +90,8 @@ int main()
 	/*
 	 * Servo models controller
 	 */
-	servoModelController.setServoModel1(servo1.getServoModel());
-	servoModelController.setServoModel2(servo2.getServoModel());
+	uartController.setServoModel1(servo1.getServoModel());
+	uartController.setServoModel2(servo2.getServoModel());
 
 
 
@@ -120,11 +120,11 @@ int main()
 		uart->RX_STR_EVENT();
 
 		//Uart parser event
-		servoModelController.loopEvent();
+		uartController.loopEvent();
 
 		//Servo events
-		servoController1.event();
-		servoController1.event();
+		//servoController1.event();
+		//servoController1.event();
 
 	}
 }
@@ -134,7 +134,7 @@ void uartCallback(char *data)
 	CUart::getInstance()->puts("Received Uart:");
 	CUart::getInstance()->puts(data);
 	CUart::getInstance()->puts("\r\n");
-	servoModelController.uartDataReady(data);
+	uartController.uartDataReady(data);
 }
 
 void timerCallback()

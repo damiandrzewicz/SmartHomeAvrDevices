@@ -11,7 +11,7 @@
 #include <avr/io.h>
 #include "ParserInterface/CParserInterface.h"
 
-class CUartDataParser : public CParserInterface  {
+class CConnectorUartDataParser : public CParserInterface  {
 public:
 	enum class OperationName{
 		SendDataToDevice,
@@ -22,8 +22,8 @@ public:
 		NotSupported
 	};
 
-	CUartDataParser();
-	virtual ~CUartDataParser();
+	CConnectorUartDataParser();
+	~CConnectorUartDataParser();
 
 	virtual bool parse(char *pData) override;
 	bool createMessage(OperationName opName, OperationDirection opDir, char *pContext, char *pResult = nullptr);

@@ -5,9 +5,9 @@
  *      Author: damian
  */
 
-#include <string.h>
-#include "UartDataParser.h"
+#include "../ConnectorUartDataParser/ConnectorUartDataParser.h"
 
+#include <string.h>
 #include "../uart/uart.h"
 
 const char *const OpNameText[] PROGMEM = {
@@ -19,16 +19,16 @@ const char *const OpNameText[] PROGMEM = {
 		"no"		//NotSupported
 };
 
-CUartDataParser::CUartDataParser() {
+CConnectorUartDataParser::CConnectorUartDataParser() {
 	// TODO Auto-generated constructor stub
 
 }
 
-CUartDataParser::~CUartDataParser() {
+CConnectorUartDataParser::~CConnectorUartDataParser() {
 	// TODO Auto-generated destructor stub
 }
 
-bool CUartDataParser::parse(char *pData)
+bool CConnectorUartDataParser::parse(char *pData)
 {
 	if(!checkTokenParser())
 			return false;
@@ -79,7 +79,7 @@ bool CUartDataParser::parse(char *pData)
 	return true;
 }
 
-bool CUartDataParser::createMessage(OperationName opName, OperationDirection opDir, char *pContext, char *pResult)
+bool CConnectorUartDataParser::createMessage(OperationName opName, OperationDirection opDir, char *pContext, char *pResult)
 {
 	if(!pResult)
 			return false;
@@ -95,22 +95,22 @@ bool CUartDataParser::createMessage(OperationName opName, OperationDirection opD
 		return true;
 }
 
-CUartDataParser::OperationName CUartDataParser::getOperationName()
+CConnectorUartDataParser::OperationName CConnectorUartDataParser::getOperationName()
 {
 	return static_cast<OperationName>(CParserInterface::getOperationNameAsUint());
 }
 
-void CUartDataParser::setOperationName(OperationName op)
+void CConnectorUartDataParser::setOperationName(OperationName op)
 {
 	CParserInterface::setOperationName(static_cast<uint8_t>(op));
 }
 
-char *CUartDataParser::getOperationNameText(OperationName op)
+char *CConnectorUartDataParser::getOperationNameText(OperationName op)
 {
 	return (char*)pgm_read_word( &OpNameText[static_cast<uint8_t>(op)] );
 }
 
-CUartDataParser::OperationName CUartDataParser::parseOperationName(char *pOperationName)
+CConnectorUartDataParser::OperationName CConnectorUartDataParser::parseOperationName(char *pOperationName)
 {
 	if(!strcmp(pOperationName, getOperationNameText(OperationName::SendDataToDevice)))
 		return OperationName::SendDataToDevice;
@@ -126,7 +126,7 @@ CUartDataParser::OperationName CUartDataParser::parseOperationName(char *pOperat
 		return OperationName::NotSupported;
 }
 
-bool CUartDataParser::createErrorMsg(Error err, char *pResult)
+bool CConnectorUartDataParser::createErrorMsg(Error err, char *pResult)
 {
 	return CParserInterface::createErrorMsg(err, AdditionalTexts::At, pResult);
 }

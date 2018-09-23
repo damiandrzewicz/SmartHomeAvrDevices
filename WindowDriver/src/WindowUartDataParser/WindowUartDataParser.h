@@ -11,9 +11,9 @@
 #include <avr/io.h>
 #include "ParserInterface/CParserInterface.h"
 #include "../servo/servo.h"
-#include "ModelDataContainer.h"
+#include "../WindowUartDataParser/ModelDataContainer.h"
 
-class CModelDataParser : public CParserInterface {
+class CWindowUartDataParser : public CParserInterface {
 public:
 	enum class OperationName
 	{
@@ -25,8 +25,8 @@ public:
 		NotSupported
 	};
 
-	CModelDataParser();
-	~CModelDataParser();
+	CWindowUartDataParser();
+	~CWindowUartDataParser();
 
 	virtual bool parse(char *pData) override;
 	bool createMessage(OperationName opName, OperationDirection opDir, char *pContext, char *pResult = nullptr);
@@ -39,7 +39,12 @@ public:
 	bool parseBlindNo(uint8_t &iBlindNo);
 
 	bool parseGetBlindType(SBlindType &refBlindType);
+	bool parseSetBlindType(SBlindType &refBlindType);
+
+	bool parseSetCalibrate(SBlindCalibrate &refBlindCalibrate);
+
 	bool parseGetBlindState(SBlindState &refBlindState);
+	bool parseSetBlindState(SBlindState &refBlindState);
 
 	//bool parseSetBlindType(SBlindType &refBlindState);
 	//bool parseSetBlindState()
@@ -53,7 +58,5 @@ protected:
 	OperationName parseOperationName(char *pOperationName);
 
 	char m_modelContextArr[15];
-
-	bool parseSayHelloContext();
 };
 

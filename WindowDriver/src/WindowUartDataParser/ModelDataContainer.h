@@ -21,5 +21,12 @@ struct SBlindState
 	ServoEnum::Direction direction = ServoEnum::Direction::Stop;
 	uint8_t nOpenPercent = 0;
 	ServoEnum::Visibility visibility = ServoEnum::Visibility::None;
+	bool bAutoDrive = true;
 	bool bIsWindowClosed = false;
+};
+
+struct SBlindCalibrate
+{
+	uint8_t nBlindNo = 0;
+	uint8_t nCalibrateStep = 0;
 };
