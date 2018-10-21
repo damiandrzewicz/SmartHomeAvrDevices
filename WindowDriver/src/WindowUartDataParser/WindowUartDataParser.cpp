@@ -10,12 +10,13 @@
 #include "WindowUartDataParser.h"
 
 const char *const OpNameText[] PROGMEM = {
-		"SBT",			//SetBlindType,
-		"GBT",			//GetBlindType,
-		"SS",			//SetState,
-		"GS",			//GetState,
-		"SC",			//Calibrate,
-		"no",			//NotSupported
+        "SBM",					//SetBlindMetadata,
+        "GBM",					//GetBlindMetadata,
+        "MD",					//ManualDrive,
+        "SBS",					//SetBlindState,
+        "GBS",					//GetBlindState,
+        "SCS",					//SetCalibrateStep,
+        "no"					//NotSupported
 };
 
 CWindowUartDataParser::CWindowUartDataParser() {
@@ -103,23 +104,25 @@ char *CWindowUartDataParser::getOperationNameText(OperationName op)
 
 CWindowUartDataParser::OperationName CWindowUartDataParser::parseOperationName(char *pOperationName)
 {
-	if(!strcmp(pOperationName, getOperationNameText(OperationName::SetBlindType)))
-		return OperationName::SetBlindType;
-	else if(!strcmp(pOperationName, getOperationNameText(OperationName::GetBlindType)))
-		return OperationName::GetBlindType;
-	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SetState)))
-		return OperationName::SetState;
-	else if(!strcmp(pOperationName, getOperationNameText(OperationName::GetState)))
-		return OperationName::GetState;
-	else if(!strcmp(pOperationName, getOperationNameText(OperationName::Calibrate)))
-		return OperationName::Calibrate;
+	if(!strcmp(pOperationName, getOperationNameText(OperationName::SetBlindMetadata)))
+		return OperationName::SetBlindMetadata;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::GetBlindMetadata)))
+		return OperationName::GetBlindMetadata;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::ManualDrive)))
+		return OperationName::ManualDrive;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SetBlindState)))
+		return OperationName::SetBlindState;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::GetBlindState)))
+		return OperationName::GetBlindState;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SetCalibrateStep)))
+		return OperationName::SetCalibrateStep;
 	else /*if(!strcmp(pOperationName, getOperationNameText(OperationName::NotSupported)))*/
 		return OperationName::NotSupported;
 }
 
-bool CWindowUartDataParser::createErrorMsg(Error err, char *pResult)
+bool CWindowUartDataParser::createErrorMsg(uint8_t errNo, char *pResult)
 {
-	return CParserInterface::createErrorMsg(err, AdditionalTexts::ExclMark, pResult);
+	return CParserInterface::createErrorMsg(errNo, AdditionalTexts::ExclMark, pResult);
 }
 
 bool CWindowUartDataParser::parseBlindNo(uint8_t &nBlindNo)
@@ -155,120 +158,133 @@ bool CWindowUartDataParser::parseBlindNo(uint8_t &nBlindNo)
 		return false;
 }
 
-bool CWindowUartDataParser::parseGetBlindType(SBlindType &refBlindType)
+bool CWindowUartDataParser::parseSetBlindMetadata(CBlindMetadata &refBlindMetadata)
 {
-	if(!parseBlindNo(refBlindType.nBlindNo))
+	if(!parseBlindNo(refBlindMetadata.getBlindNumber()))
+		return false;
+
+	CUart::getInstance()->putint(refBlindMetadata.getBlindNumber(), 10);
+
+	//Get blind type
+	char *cTemp = m_pTokenParser->getNextToken();
+	CUart::getInstance()->puts(cTemp);
+	if(cTemp == nullptr || !strcmp(cTemp, ""))
+		return false;
+	refBlindMetadata.setBlindType( static_cast<WindowData::BlindType>(atoi(cTemp)));
+
+	//Get blind visibility
+	cTemp = m_pTokenParser->getNextToken();
+	if(cTemp == nullptr || !strcmp(cTemp, ""))
+		return false;
+	refBlindMetadata.setBlindVisibility( static_cast<WindowData::Visibility>(atoi(cTemp)));
+
+	return true;
+}
+
+bool CWindowUartDataParser::parseGetBlindMetadata(CBlindMetadata &refBlindMetadata)
+{
+	if(!parseBlindNo(refBlindMetadata.getBlindNumber()))
 		return false;
 
 	return true;
 }
 
-bool CWindowUartDataParser::parseSetBlindType(SBlindType &refBlindType)
+bool CWindowUartDataParser::parseManualDrive(CBlindManualDrive &refManualDrive)
 {
-	if(!parseBlindNo(refBlindType.nBlindNo))
+	if(!parseBlindNo(refManualDrive.getBlindNumber()))
+		return false;
+
+	//Get blind direction
+	char *cTemp = m_pTokenParser->getNextToken();
+	if(cTemp == nullptr || !strcmp(cTemp, ""))
+		return false;
+	refManualDrive.setManualDriveDirection( static_cast<WindowData::Direction>(atoi(cTemp)));
+
+	return true;
+}
+
+bool CWindowUartDataParser::parseGetBlindState(CBlindState &refBlindState)
+{
+	if(!parseBlindNo(refBlindState.getBlindNumber()))
+		return false;
+
+	return true;
+}
+
+bool CWindowUartDataParser::parseSetBlindState(CBlindState &refBlindState)
+{
+	if(!parseBlindNo(refBlindState.getBlindNumber()))
+		return false;
+
+	//Set open percent
+	char *cTemp = m_pTokenParser->getNextToken();
+	if(cTemp == nullptr || !strcmp(cTemp, ""))
+		return false;
+	refBlindState.setOpenPercent(static_cast<uint8_t>(atoi(cTemp)));
+
+	//Set open speed
+	cTemp = m_pTokenParser->getNextToken();
+	if(cTemp == nullptr || !strcmp(cTemp, ""))
+		return false;
+	refBlindState.setOpenSpeed(static_cast<uint8_t>(atoi(cTemp)));
+
+	return true;
+}
+
+bool CWindowUartDataParser::parseSetCalibrate(CBlindCalibrate &refBlindCalibrate)
+{
+	if(!parseBlindNo(refBlindCalibrate.getBlindNumber()))
 		return false;
 
 	char *cTemp = m_pTokenParser->getNextToken();
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
-
-	refBlindType.blindType = static_cast<ServoEnum::BlindType>(atoi(cTemp));
-
-	return true;
-}
-
-bool CWindowUartDataParser::parseGetBlindState(SBlindState &refBlindState)
-{
-	if(!parseBlindNo(refBlindState.nBlindNo))
-		return false;
+	refBlindCalibrate.setCalibrateStep( static_cast<uint8_t>(atoi(m_pTokenParser->getNextToken())));
 
 	return true;
 }
 
-bool CWindowUartDataParser::parseSetBlindState(SBlindState &refBlindState)
-{
-	if(!parseBlindNo(refBlindState.nBlindNo))
-		return false;
-
-	char *cTemp = m_pTokenParser->getNextToken();
-	if(cTemp == nullptr || !strcmp(cTemp, ""))
-		return false;
-	refBlindState.nOpenPercent = static_cast<uint8_t>(atoi(cTemp));
-
-	cTemp = m_pTokenParser->getNextToken();
-	if(cTemp == nullptr || !strcmp(cTemp, ""))
-		return false;
-	refBlindState.direction = static_cast<ServoEnum::Direction>(atoi(cTemp));
-
-	cTemp = m_pTokenParser->getNextToken();
-	if(cTemp == nullptr || !strcmp(cTemp, ""))
-		return false;
-	refBlindState.visibility = static_cast<ServoEnum::Visibility>(atoi(cTemp));
-
-	cTemp = m_pTokenParser->getNextToken();
-	if(cTemp == nullptr || !strcmp(cTemp, ""))
-		return false;
-	refBlindState.bAutoDrive = static_cast<bool>(atoi(cTemp));
-
-	return true;
-}
-
-bool CWindowUartDataParser::parseSetCalibrate(SBlindCalibrate &refBlindCalibrate)
-{
-	if(!parseBlindNo(refBlindCalibrate.nBlindNo))
-		return false;
-
-	char *cTemp = m_pTokenParser->getNextToken();
-	if(cTemp == nullptr || !strcmp(cTemp, ""))
-		return false;
-	refBlindCalibrate.nCalibrateStep = static_cast<uint8_t>(atoi(m_pTokenParser->getNextToken()));
-
-	return true;
-}
-
-bool CWindowUartDataParser::createGetBlindTypeContext(SBlindType &refBlindType, char *pResult)
+bool CWindowUartDataParser::createGetBlindMetadataContext(CBlindMetadata &refBlindMetadata, char *pResult)
 {
 	if(pResult == nullptr)
 		return false;
 
-	char cBlindType[3];
-	itoa(static_cast<uint8_t>(refBlindType.blindType), cBlindType, 10);
-
+	char cTemp[3];
+	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindType()), cTemp, 10);
 	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
-	strcat(pResult, cBlindType);
-	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, cTemp);
 
+	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindVisibility()), cTemp, 10);
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, cTemp);
+
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	return true;
 }
 
-
-bool CWindowUartDataParser::createGetBlindStateContext(SBlindState &refBlindState, char *pResult)
+bool CWindowUartDataParser::createGetBlindStateContext(CBlindState &refBlindState, char *pResult)
 {
 	if(pResult == nullptr)
 		return false;
 
 	char cTemp[4];
 
-	itoa(static_cast<uint8_t>(refBlindState.nOpenPercent), cTemp, 10);
+	//Open percent
+	itoa(static_cast<uint8_t>(refBlindState.getOpenPercent()), cTemp, 10);
 	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
-	itoa(static_cast<uint8_t>(refBlindState.direction), cTemp, 10);
+	//open speed
+	itoa(static_cast<uint8_t>(refBlindState.getOpenSpeed()), cTemp, 10);
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
-	itoa(static_cast<uint8_t>(refBlindState.visibility), cTemp, 10);
+	////Is window closed
+	itoa(static_cast<uint8_t>(refBlindState.isWindowClosed()), cTemp, 10);
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
-	itoa(static_cast<uint8_t>(refBlindState.bIsWindowClosed), cTemp, 10);
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
-	strcat(pResult, cTemp);
-
-	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
-
 	return true;
 }
-
-
 

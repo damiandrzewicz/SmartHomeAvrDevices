@@ -38,14 +38,16 @@ public:
 		ParserError,
 		WrongOperationDirection,
 		WrongOperationName,
-		ProcessingError};
+		ProcessingError,
+		END_OF_ERROR
+	};
 
 	CParserInterface(){}
 	virtual ~CParserInterface(){}
 
 	virtual bool parse(char *pData) = 0;
 
-	virtual bool createErrorMsg(Error err, char *pResult) = 0;
+	virtual bool createErrorMsg(uint8_t errNo, char *pResult) = 0;
 
 	void registerTokenParser(CTokenParser *pTokenParser){m_pTokenParser = pTokenParser;}
 	bool checkTokenParser(){return (m_pTokenParser != nullptr) ? true : false;}
@@ -62,19 +64,19 @@ public:
 	}
 
 protected:
-	bool createErrorMsg(Error err, AdditionalTexts ltr, char *pResult)
+	bool createErrorMsg(uint8_t errNo, AdditionalTexts ltr, char *pResult)
 	{
 		if(!pResult)
-				return false;
-			//Prepare output message
-			char temp[3];
-			strcpy(pResult, getAdditionalText(ltr));
-			strcat(pResult, getAdditionalText(AdditionalTexts::Error));
-			strcat(pResult, getAdditionalText(ltr));
-			strcat(pResult, itoa(static_cast<uint8_t>(err), temp, 10));
-			strcat(pResult, getAdditionalText(ltr));
+			return false;
+		//Prepare output message
+		char temp[3];
+		strcpy(pResult, getAdditionalText(ltr));
+		strcat(pResult, getAdditionalText(AdditionalTexts::Error));
+		strcat(pResult, getAdditionalText(ltr));
+		strcat(pResult, itoa(errNo, temp, 10));
+		strcat(pResult, getAdditionalText(ltr));
 
-			return true;
+		return true;
 	}
 
 	void setOperationDirection(OperationDirection op){m_operationDirection = op;}

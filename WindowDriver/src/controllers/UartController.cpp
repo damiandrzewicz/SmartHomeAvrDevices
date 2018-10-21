@@ -36,15 +36,15 @@ void CUartController::clearNotofications()
 	m_bUartDataReady = false;
 }
 
-void CUartController::setServoModel1(ServoModel *state)
+void CUartController::setServoModel1(CServoModel *pModel)
 {
-	m_servoModelArr[0] = state;
+	m_servoModelArr[0] = pModel;
 	//m_servoModel1 = state;
 }
 
-void CUartController::setServoModel2(ServoModel *state)
+void CUartController::setServoModel2(CServoModel *pModel)
 {
-	m_servoModelArr[1] = state;
+	m_servoModelArr[1] = pModel;
 	//m_servoModel2 = state;
 }
 
@@ -54,7 +54,8 @@ void CUartController::loopEvent()
 	{
 		if(!m_connectorUartParser.parse(getData()))
 		{
-			m_connectorUartParser.createErrorMsg(CConnectorUartDataParser::Error::ParserError, m_cUartMessage);
+			m_connectorUartParser.createErrorMsg(
+					static_cast<uint8_t>(CConnectorUartDataParser::Error::ParserError), m_cUartMessage);
 				CUart::getInstance()->puts(m_cUartMessage);
 				m_bUartDataReady = false;
 				return;
@@ -62,7 +63,8 @@ void CUartController::loopEvent()
 		//Get operation direction
 		if(m_connectorUartParser.getOperationDirection() != CConnectorUartDataParser::OperationDirection::Request)
 		{
-			m_connectorUartParser.createErrorMsg(CConnectorUartDataParser::Error::WrongOperationDirection, m_cUartMessage);
+			m_connectorUartParser.createErrorMsg(
+					static_cast<uint8_t>(CConnectorUartDataParser::Error::WrongOperationDirection), m_cUartMessage);
 			CUart::getInstance()->puts(m_cUartMessage);
 			m_bUartDataReady = false;
 			return;
@@ -83,7 +85,8 @@ void CUartController::loopEvent()
 		}
 		else if(m_connectorUartParser.getOperationName() == CConnectorUartDataParser::OperationName::NotSupported)
 		{
-			m_connectorUartParser.createErrorMsg(CConnectorUartDataParser::Error::WrongOperationName, m_cUartMessage);
+			m_connectorUartParser.createErrorMsg(
+					static_cast<uint8_t>(CConnectorUartDataParser::Error::WrongOperationName), m_cUartMessage);
 			CUart::getInstance()->puts(m_cUartMessage);
 			m_bUartDataReady = false;
 			return;
@@ -99,114 +102,148 @@ bool CUartController::processModelMessage()
 
 	if(!m_windowUartParser.parse(m_cUartMessage))
 	{
-		m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ParserError, m_cModelMessage);
+		m_windowUartParser.createErrorMsg(
+				static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
 		return false;
 	}
 
 	//Get operation direction
 	if(m_windowUartParser.getOperationDirection() != CWindowUartDataParser::OperationDirection::Request)
 	{
-		m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::WrongOperationDirection, m_cModelMessage);
+		m_windowUartParser.createErrorMsg(
+				static_cast<uint8_t>(CWindowUartDataParser::Error::WrongOperationDirection), m_cModelMessage);
 		return false;
 	}
 
 	char cContext[15];
 
 	//Check if operation name is allowed
-	if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetBlindType)
+	if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetBlindMetadata)
 	{
-		SBlindType blindType;
-		if(!m_windowUartParser.parseGetBlindType(blindType))
+		CBlindMetadata blindMetadata;
+		if(!m_windowUartParser.parseSetBlindMetadata(blindMetadata))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ParserError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
 			return false;
 		}
 
-		if(!readBlindType(blindType))
+		if(!processBlindMetadata(blindMetadata))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ProcessingError, m_cModelMessage);
-			return false;
-		}
-
-		if(!m_windowUartParser.createGetBlindTypeContext(blindType, cContext))
-		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ProcessingError, m_cModelMessage);
-			return false;
-		}
-	}
-	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetBlindType)
-	{
-		SBlindType blindType;
-		if(!m_windowUartParser.parseSetBlindType(blindType))
-		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ParserError, m_cModelMessage);
-			return false;
-		}
-
-		if(!processBlindType(blindType))
-		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ProcessingError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
 
 		strcpy(cContext, "ok");
 	}
-	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetState)
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetBlindMetadata)
 	{
-		SBlindState blindState;
+		CBlindMetadata blindMetadata;
+		if(!m_windowUartParser.parseGetBlindMetadata(blindMetadata))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
+			return false;
+		}
+
+		if(!readBlindMetadata(blindMetadata))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
+			return false;
+		}
+
+		if(!m_windowUartParser.createGetBlindMetadataContext(blindMetadata, cContext))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
+			return false;
+		}
+	}
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::ManualDrive)
+	{
+		CBlindManualDrive manualDrive;
+		if(!m_windowUartParser.parseManualDrive(manualDrive))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
+			return false;
+		}
+
+		if(!processManualDrive(manualDrive))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
+			return false;
+		}
+
+		strcpy(cContext, "ok");
+	}
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetBlindState)
+	{
+		CBlindState blindState;
 		if(!m_windowUartParser.parseGetBlindState(blindState))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ParserError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
 			return false;
 		}
 
 		if(!readBlindState(blindState))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ProcessingError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
 
 		if(!m_windowUartParser.createGetBlindStateContext(blindState, cContext))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ProcessingError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
 	}
-	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetState)
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetBlindState)
 	{
-		SBlindState blindState;
+		CBlindState blindState;
 		if(!m_windowUartParser.parseSetBlindState(blindState))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ParserError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
 			return false;
 		}
 
 		if(!processBlindState(blindState))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ProcessingError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
 		strcpy(cContext, "ok");
 	}
-	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::Calibrate)
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetCalibrateStep)
 	{
-		SBlindCalibrate blindCalibrate;
+		CBlindCalibrate blindCalibrate;
 		if(!m_windowUartParser.parseSetCalibrate(blindCalibrate))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ParserError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
 			return false;
 		}
 
 		if(!processSetCalibrate(blindCalibrate))
 		{
-			m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::ProcessingError, m_cModelMessage);
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
 		strcpy(cContext, "ok");
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::NotSupported)
 	{
-		m_windowUartParser.createErrorMsg(CWindowUartDataParser::Error::WrongOperationName, m_cModelMessage);
+		m_windowUartParser.createErrorMsg(
+				static_cast<uint8_t>(CWindowUartDataParser::Error::WrongOperationName), m_cModelMessage);
 		return false;
 	}
 
@@ -220,43 +257,49 @@ bool CUartController::processModelMessage()
 	return true;
 }
 
-bool CUartController::readBlindType(SBlindType &refBlindType)
+bool CUartController::readBlindMetadata(CBlindMetadata &refBlindMetadata)
 {
-	uint8_t nPos = refBlindType.nBlindNo - 1;
-	refBlindType.blindType = m_servoModelArr[nPos]->getBlindType();
+	uint8_t nPos = refBlindMetadata.getBlindNumber() - 1;
+	refBlindMetadata.setBlindType(m_servoModelArr[nPos]->getBlindType());
+	refBlindMetadata.setBlindVisibility(m_servoModelArr[nPos]->getBlindVisibility());
 	return true;
 }
 
-bool CUartController::processBlindType(SBlindType &refBlindType)
+bool CUartController::processBlindMetadata(CBlindMetadata &refBlindMetadata)
 {
-	uint8_t nPos = refBlindType.nBlindNo - 1;
-	m_servoModelArr[nPos]->setBlindType(refBlindType.blindType);
+	uint8_t nPos = refBlindMetadata.getBlindNumber() - 1;
+	m_servoModelArr[nPos]->setBlindType(refBlindMetadata.getBlindType());
+	m_servoModelArr[nPos]->setBlindVisibility(refBlindMetadata.getBlindVisibility());
 	return true;
 }
 
-bool CUartController::readBlindState(SBlindState &refBlindState)
+bool CUartController::processManualDrive(CBlindManualDrive &refManualDrive)
 {
-	uint8_t nPos = refBlindState.nBlindNo - 1;
-	refBlindState.nOpenPercent = m_servoModelArr[nPos]->getOpenPercent();
-	refBlindState.direction = m_servoModelArr[nPos]->getDirection();
-	refBlindState.visibility = m_servoModelArr[nPos]->getVisibility();
-	refBlindState.bIsWindowClosed = m_servoModelArr[nPos]->isWindowClosed();
+	//TODO
+	return false;
+}
+
+bool CUartController::readBlindState(CBlindState &refBlindState)
+{
+	uint8_t nPos = refBlindState.getBlindNumber() - 1;
+	refBlindState.setOpenPercent(m_servoModelArr[nPos]->getOpenPercent());
+	refBlindState.setOpenSpeed(m_servoModelArr[nPos]->getOpenSpeed());
+	refBlindState.setIsWindowClosed(m_servoModelArr[nPos]->isWindowClosed());
 	return true;
 }
 
-bool CUartController::processBlindState(SBlindState &refBlindState)
+bool CUartController::processBlindState(CBlindState &refBlindState)
 {
-	uint8_t nPos = refBlindState.nBlindNo - 1;
-	m_servoModelArr[nPos]->setOpenPercent(refBlindState.nOpenPercent);
-	m_servoModelArr[nPos]->setDirection(refBlindState.direction);
-	m_servoModelArr[nPos]->setVisibility(refBlindState.visibility);
+	uint8_t nPos = refBlindState.getBlindNumber() - 1;
+	m_servoModelArr[nPos]->setOpenPercent(refBlindState.getOpenPercent());
+	m_servoModelArr[nPos]->setOpenSpeed(refBlindState.getOpenSpeed());
 	return true;
 }
 
-bool CUartController::processSetCalibrate(SBlindCalibrate &refBlindCalibrate)
+bool CUartController::processSetCalibrate(CBlindCalibrate &refBlindCalibrate)
 {
-	uint8_t nPos = refBlindCalibrate.nBlindNo - 1;
-	m_servoModelArr[nPos]->setCalibrationStep(refBlindCalibrate.nCalibrateStep);
+	uint8_t nPos = refBlindCalibrate.getBlindNumber() - 1;
+	m_servoModelArr[nPos]->setCalibrateStep(refBlindCalibrate.getCalibrateStep());
 	return true;
 }
 

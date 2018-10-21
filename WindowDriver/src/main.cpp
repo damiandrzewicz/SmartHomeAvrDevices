@@ -78,8 +78,8 @@ int main()
 	 * CServo
 	 * **********
 	 */
-	CServo servo1(servoData1);	//CreateServo1 object
-	CServo servo2(servoData2);	//CreateServo2 object
+	CServo servo1(servoData1, 1);	//CreateServo1 object
+	CServo servo2(servoData2, 2);	//CreateServo2 object
 
 	/*
 	 * Servo controllers

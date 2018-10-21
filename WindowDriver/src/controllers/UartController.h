@@ -21,24 +21,25 @@ public:
 	void uartDataReady(char *pData);
 	char *getData();
 
-	void setServoModel1(ServoModel *state);
-	void setServoModel2(ServoModel *state);
+	void setServoModel1(CServoModel *state);
+	void setServoModel2(CServoModel *state);
 
 	void loopEvent();
 
 protected:
 	void clearNotofications();
 
-	bool readBlindType(SBlindType &refBlindType);
-	bool processBlindType(SBlindType &refBlindType);
+	bool readBlindMetadata(CBlindMetadata &refBlindMetadata);
+	bool processBlindMetadata(CBlindMetadata &refBlindMetadata);
 
-	bool readBlindState(SBlindState &refBlindState);
-	bool processBlindState(SBlindState &refBlindState);
+	bool processManualDrive(CBlindManualDrive &refManualDrive);
 
-	bool processSetCalibrate(SBlindCalibrate &refBlindCalibrate);
+	bool readBlindState(CBlindState &refBlindState);
+	bool processBlindState(CBlindState &refBlindState);
+
+	bool processSetCalibrate(CBlindCalibrate &refBlindCalibrate);
 
 	bool processModelMessage();
-	bool parseGetBlindType();
 
 private:
 	CTokenParser m_tokenParser;
@@ -58,6 +59,6 @@ private:
 	bool m_bWaitingForResponse = false;
 	bool m_bProcessResponseStep = false;
 
-	ServoModel *m_servoModelArr[2];
+	CServoModel *m_servoModelArr[2];
 };
 

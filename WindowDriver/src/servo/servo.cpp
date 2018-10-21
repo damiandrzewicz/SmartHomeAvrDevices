@@ -8,7 +8,9 @@
 #include <stdlib.h>
 #include "servo.h"
 
-CServo::CServo(ServoData data) {
+CServo::CServo(ServoData data, uint8_t nBlindNo)
+	: m_servoModel(nBlindNo)
+{
 	m_pinM1 = data.pinM1;
 	m_pinM2 = data.pinM2;
 	this->enablePwmFunPtr = data.enablePwmFunPtr;
@@ -19,7 +21,7 @@ CServo::~CServo() {
 	// TODO Auto-generated destructor stub
 }
 
-ServoModel *CServo::getServoModel()
+CServoModel *CServo::getServoModel()
 {
 	return &m_servoModel;
 }
@@ -75,11 +77,11 @@ void CServo::processSpeed(uint8_t percent)
 	(m_timer1Obj->*enablePwmFunPtr)((percent * 255) / 100);
 }
 
-void CServo::processPercentOfOpen(uint8_t percent, ServoEnum::Visibility vis)
+void CServo::processPercentOfOpen(uint8_t percent, WindowData::Visibility vis)
 {
 	m_servoModel.setOpenPercent(percent);
 	uint64_t temp = (percent / 100);
-	if(m_servoModel.getBlindType() == ServoEnum::BlindType::FullBlackout)
+	if(m_servoModel.getBlindType() == WindowData::BlindType::FullBlackout)
 	{
 		m_setEncoderCounter = m_maxEncoderCounter * temp;
 		return;
@@ -97,9 +99,9 @@ void CServo::processPercentOfOpen(uint8_t percent, ServoEnum::Visibility vis)
 		{
 			//Check Type
 			uint8_t startValue;
-			if(vis == ServoEnum::Visibility::Day)
+			if(vis == WindowData::Visibility::Day)
 				startValue = 2;
-			else if(vis == ServoEnum::Visibility::Night)
+			else if(vis == WindowData::Visibility::Night)
 				startValue = 1;
 			else
 			{
@@ -123,13 +125,13 @@ void CServo::processPercentOfOpen(uint8_t percent, ServoEnum::Visibility vis)
 	}
 }
 
-void CServo::processRunServo(ServoEnum::Direction dir, uint8_t speed)
+void CServo::processRunServo(WindowData::Direction dir, uint8_t speed)
 {
-	if(dir == ServoEnum::Direction::Open)
+	if(dir == WindowData::Direction::Open)
 	{
 		runClockwise(speed);
 	}
-	else if(dir == ServoEnum::Direction::Close)
+	else if(dir == WindowData::Direction::Close)
 	{
 		runCounterClockise(speed);
 	}

@@ -126,8 +126,8 @@ CConnectorUartDataParser::OperationName CConnectorUartDataParser::parseOperation
 		return OperationName::NotSupported;
 }
 
-bool CConnectorUartDataParser::createErrorMsg(Error err, char *pResult)
+bool CConnectorUartDataParser::createErrorMsg(uint8_t errNo, char *pResult)
 {
-	return CParserInterface::createErrorMsg(err, AdditionalTexts::At, pResult);
+	return CParserInterface::createErrorMsg(errNo, AdditionalTexts::At, pResult);
 }
 
