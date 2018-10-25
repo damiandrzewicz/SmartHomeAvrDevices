@@ -167,7 +167,7 @@ bool CWindowUartDataParser::parseSetBlindMetadata(CBlindMetadata &refBlindMetada
 
 	//Get blind type
 	char *cTemp = m_pTokenParser->getNextToken();
-	CUart::getInstance()->puts(cTemp);
+	//CUart::getInstance()->puts(cTemp);
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
 	refBlindMetadata.setBlindType( static_cast<WindowData::BlindType>(atoi(cTemp)));

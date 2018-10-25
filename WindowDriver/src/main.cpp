@@ -106,8 +106,8 @@ int main()
 	DDRB |= (1 << PB7);
 	PORTB &= ~(1 << PB7);
 
-	CUart::getInstance()->puts("Hello123!");			//Send response by UART
-	CUart::getInstance()->puts("\n\r");				//Terminate response
+	//CUart::getInstance()->puts("Hello123!");			//Send response by UART
+	//CUart::getInstance()->puts("\n\r");				//Terminate response
 
 
 	while(1)
@@ -131,9 +131,9 @@ int main()
 
 void uartCallback(char *data)
 {
-	CUart::getInstance()->puts("Received Uart:");
-	CUart::getInstance()->puts(data);
-	CUart::getInstance()->puts("\r\n");
+	//CUart::getInstance()->puts("Received Uart:");
+	//CUart::getInstance()->puts(data);
+	//CUart::getInstance()->puts("\r\n");
 	uartController.uartDataReady(data);
 }
 
