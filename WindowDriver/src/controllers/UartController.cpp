@@ -135,7 +135,7 @@ bool CUartController::processModelMessage()
 			return false;
 		}
 
-		strcpy(cContext, "ok");
+		strcpy(cContext, "$ok$");
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetBlindMetadata)
 	{

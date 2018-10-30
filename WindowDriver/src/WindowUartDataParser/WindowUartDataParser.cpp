@@ -163,7 +163,7 @@ bool CWindowUartDataParser::parseSetBlindMetadata(CBlindMetadata &refBlindMetada
 	if(!parseBlindNo(refBlindMetadata.getBlindNumber()))
 		return false;
 
-	CUart::getInstance()->putint(refBlindMetadata.getBlindNumber(), 10);
+	//CUart::getInstance()->putint(refBlindMetadata.getBlindNumber(), 10);
 
 	//Get blind type
 	char *cTemp = m_pTokenParser->getNextToken();
