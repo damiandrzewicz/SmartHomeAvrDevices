@@ -10,6 +10,7 @@
 #include "TokenParser/TokenParser.h"
 #include "../RadioDataParser/RadioDataParser.h"
 #include "../UartDataParser/UartDataParser.h"
+#include "../RF24/RF24.h"
 
 
 class CBaseController {
@@ -24,6 +25,17 @@ public:
 
 	virtual void eventLoop() = 0;
 
+	bool parseUartMessageWrapper(
+			CUartDataParser::OperationDirection expectedDir,
+			CRadioDataParser::OperationDirection radioDir,
+			CUartDataParser::OperationName &operationName);
+
+	bool parseRadioMessageWrapper(
+			CRadioDataParser::OperationDirection expectedDir,
+			CUartDataParser::OperationDirection uartDir,
+			CRadioDataParser::OperationName &operationName);
+
+
 protected:
 	void clearNotofications();
 
@@ -33,6 +45,9 @@ protected:
 	CUartDataParser m_uartParser;
 	char *m_pData;
 	char m_cMessage[50];
+
+	CUartDataParser::OperationName m_uartOperationName;
+	CRadioDataParser::OperationName m_radioOperationName;
 
 
 	bool m_bRadioDataReady = false;

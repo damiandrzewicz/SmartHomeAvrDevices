@@ -104,7 +104,7 @@ bool CRadioDataParser::createMessage(OperationName opName, OperationDirection op
 	return true;
 }
 
-bool CRadioDataParser::createErrorMsg(Error err, char *pResult)
+bool CRadioDataParser::createErrorMsg(uint8_t err, char *pResult)
 {
 	return CParserInterface::createErrorMsg(err, AdditionalTexts::Hash, pResult);
 }

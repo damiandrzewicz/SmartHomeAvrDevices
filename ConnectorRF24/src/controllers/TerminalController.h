@@ -17,7 +17,8 @@ public:
 	virtual void eventLoop() override;
 
 private:
-	CUartDataParser::OperationName m_operationName;
+//	CUartDataParser::OperationName m_uartOperationName;
+//	CRadioDataParser::OperationName m_radioOperationName;
 	bool m_bWaitingForResponse = false;
 	bool m_bProcessResponseStep = false;
 };

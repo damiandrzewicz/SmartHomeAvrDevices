@@ -213,25 +213,25 @@ void USART_RXC_vect (void)
 
 		switch(cData)
 		{
-		case 0:
-		{
+			case 0:
+			{
 
-		}
-		case 10:
-		{
-			break;		//ignore LF sign
-		}
-		case 13:
-		{
-			CUart::m_cuUartInstance->m_u8_asciiLine++;	//new line in buffer
-		}
+			}
+			case 10:
+			{
+				break;		//ignore LF sign
+			}
+			case 13:
+			{
+				CUart::m_cuUartInstance->m_u8_asciiLine++;	//new line in buffer
+			}
 
-		default:
-		{
-			//CUart::m_cuUartInstance->datanumber++;
-			CUart::m_cuUartInstance->m_u8_RxHead = u8_tmpHead;
-			CUart::m_cuUartInstance->m_cRxBuff[u8_tmpHead] = cData;
-		}
+			default:
+			{
+				//CUart::m_cuUartInstance->datanumber++;
+				CUart::m_cuUartInstance->m_u8_RxHead = u8_tmpHead;
+				CUart::m_cuUartInstance->m_cRxBuff[u8_tmpHead] = cData;
+			}
 		}
 	}
 }

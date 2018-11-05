@@ -14,7 +14,7 @@
 #include <avr/pgmspace.h>
 #include <stdlib.h>
 
-#define UART_BAUD 38400		// tu definiujemy interesuj�c� nas pr�dko��
+#define UART_BAUD 500000		// tu definiujemy interesuj�c� nas pr�dko��
 #define __UBRR ((F_CPU+UART_BAUD*8UL) / (16UL*UART_BAUD)-1) // obliczamy UBRR dla U2X=0
 
 //// definicje na potrzeby RS485

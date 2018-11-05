@@ -30,15 +30,16 @@ CUartDataParser::~CUartDataParser() {
 
 bool CUartDataParser::parse(char *pData)
 {
+	//CUart::getInstance()->puts("here2:D\r\n");
 	if(!checkTokenParser())
 			return false;
-
+	//CUart::getInstance()->puts("here1:D\r\n");
 	//Check trimming chars
 	if(m_pTokenParser->checkTrimmingChars(pData, '@') != TokenParseResult::Ok)
 	{
 		return false;
 	}
-
+	//CUart::getInstance()->puts("here:D\r\n");
 
 	//Parse
 	if(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::At)) != TokenParseResult::Ok)
@@ -128,7 +129,7 @@ CUartDataParser::OperationName CUartDataParser::parseOperationName(char *pOperat
 		return OperationName::NotSupported;
 }
 
-bool CUartDataParser::createErrorMsg(Error err, char *pResult)
+bool CUartDataParser::createErrorMsg(uint8_t err, char *pResult)
 {
 	return CParserInterface::createErrorMsg(err, AdditionalTexts::At, pResult);
 }

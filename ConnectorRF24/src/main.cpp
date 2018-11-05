@@ -75,7 +75,7 @@ int main()
 	/////////////////////////////////////////////
 
 
-	CUart::getInstance()->puts("hello3\r\n");
+	//CUart::getInstance()->puts("hello3\r\n");
 
 
 	//Infinity loop
@@ -93,16 +93,16 @@ int main()
 /////////////////////////////////////////////
 void uartCallback(char *cUartData)
 {
-	CUart::getInstance()->puts("Received Uart:");
-	CUart::getInstance()->puts(cUartData);
-	CUart::getInstance()->puts("\r\n");
+	//CUart::getInstance()->puts("Received Uart:");
+	//CUart::getInstance()->puts(cUartData);
+	//CUart::getInstance()->puts("\r\n");
 	controller.uartDataReady(cUartData);
 }
 
 void nrfCallback(char *cRadioData, uint8_t nDataLen)
 {
-	CUart::getInstance()->puts("ReceivedRadio :");
-	CUart::getInstance()->puts(cRadioData);
-	CUart::getInstance()->puts("\r\n");
+	//CUart::getInstance()->puts("ReceivedRadio :");
+	//CUart::getInstance()->puts(cRadioData);
+	//CUart::getInstance()->puts("\r\n");
 	controller.radioDataReady(cRadioData);
 }
