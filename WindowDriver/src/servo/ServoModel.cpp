@@ -76,7 +76,8 @@ CServoModel::CServoModel(uint8_t nBlindNo)
 	: CBlindBase(nBlindNo),
 	  CBlindMetadata(nBlindNo),
 	  CBlindState(nBlindNo),
-	  CBlindCalibrate(nBlindNo)
+	  CBlindCalibrate(nBlindNo),
+	  CBlindManualDrive(nBlindNo)
 {
 }
 

@@ -1,40 +1,6 @@
-EESchema Schematic File Version 2
-LIBS:power
-LIBS:device
-LIBS:switches
-LIBS:relays
-LIBS:motors
-LIBS:transistors
-LIBS:conn
-LIBS:linear
-LIBS:regul
-LIBS:74xx
-LIBS:cmos4000
-LIBS:adc-dac
-LIBS:memory
-LIBS:xilinx
-LIBS:microcontrollers
-LIBS:dsp
-LIBS:microchip
-LIBS:analog_switches
-LIBS:motorola
-LIBS:texas
-LIBS:intel
-LIBS:audio
-LIBS:interface
-LIBS:digital-audio
-LIBS:philips
-LIBS:display
-LIBS:cypress
-LIBS:siliconi
-LIBS:opto
-LIBS:atmel
-LIBS:contrib
-LIBS:valves
-LIBS:w_analog
-LIBS:w_connectors
+EESchema Schematic File Version 4
 LIBS:WindowDriverPcb-cache
-EELAYER 25 0
+EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -49,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L ATMEGA32A-AU U?
+L WindowDriverPcb-rescue:ATMEGA32A-AU U?
 U 1 1 5B1D4BB9
 P 5250 3150
 F 0 "U?" H 4400 5030 50  0000 L BNN
@@ -60,7 +26,7 @@ F 3 "" H 5250 3150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L L298N U?
+L WindowDriverPcb-rescue:L298N U?
 U 1 1 5B1D64C3
 P 8650 2650
 F 0 "U?" H 8900 3350 60  0000 C CNN
@@ -71,13 +37,13 @@ F 3 "" H 8650 2650 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	9200 2250 10200 2250
+	9200 2250 9300 2250
 Wire Wire Line
-	9200 2550 10200 2550
+	9200 2550 9550 2550
 Wire Wire Line
-	9200 2750 10200 2750
+	9200 2750 9800 2750
 Wire Wire Line
-	9200 3050 10200 3050
+	9200 3050 10050 3050
 Text GLabel 10200 2250 2    55   Input ~ 0
 MA1
 Text GLabel 10200 2550 2    55   Input ~ 0
@@ -87,7 +53,7 @@ MB1
 Text GLabel 10200 3050 2    55   Input ~ 0
 MB2
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D66EB
 P 9300 3250
 F 0 "D?" H 9250 3330 50  0000 L CNN
@@ -98,7 +64,7 @@ F 3 "" V 9300 3250 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D67E0
 P 9550 3250
 F 0 "D?" H 9500 3330 50  0000 L CNN
@@ -109,7 +75,7 @@ F 3 "" V 9550 3250 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D6800
 P 9800 3250
 F 0 "D?" H 9750 3330 50  0000 L CNN
@@ -120,7 +86,7 @@ F 3 "" V 9800 3250 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D6823
 P 10050 3250
 F 0 "D?" H 10000 3330 50  0000 L CNN
@@ -131,7 +97,7 @@ F 3 "" V 10050 3250 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D68E2
 P 9300 2100
 F 0 "D?" H 9250 2180 50  0000 L CNN
@@ -142,7 +108,7 @@ F 3 "" V 9300 2100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D6935
 P 9550 2100
 F 0 "D?" H 9500 2180 50  0000 L CNN
@@ -153,7 +119,7 @@ F 3 "" V 9550 2100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D697F
 P 9800 2100
 F 0 "D?" H 9750 2180 50  0000 L CNN
@@ -164,7 +130,7 @@ F 3 "" V 9800 2100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L D_Small D?
+L WindowDriverPcb-rescue:D_Small D?
 U 1 1 5B1D69D6
 P 10050 2100
 F 0 "D?" H 10000 2180 50  0000 L CNN
@@ -175,19 +141,19 @@ F 3 "" V 10050 2100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	9300 2200 9300 3150
+	9300 2200 9300 2250
 Connection ~ 9300 2250
 Wire Wire Line
-	9550 2200 9550 3150
+	9550 2200 9550 2550
 Connection ~ 9550 2550
 Wire Wire Line
-	9800 2200 9800 3150
+	9800 2200 9800 2750
 Connection ~ 9800 2750
 Wire Wire Line
-	10050 2200 10050 3150
+	10050 2200 10050 3050
 Connection ~ 10050 3050
 $Comp
-L +6V #PWR?
+L power:+6V #PWR?
 U 1 1 5B1D6BCC
 P 8750 1700
 F 0 "#PWR?" H 8750 1550 50  0001 C CNN
@@ -198,9 +164,9 @@ F 3 "" H 8750 1700 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8750 1700 8750 2000
+	8750 1700 8750 1900
 Wire Wire Line
-	8750 1900 10050 1900
+	8750 1900 9300 1900
 Wire Wire Line
 	9300 1900 9300 2000
 Connection ~ 8750 1900
@@ -214,7 +180,7 @@ Wire Wire Line
 	9800 2000 9800 1900
 Connection ~ 9800 1900
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1D6D37
 P 9300 3450
 F 0 "#PWR?" H 9300 3200 50  0001 C CNN
@@ -225,7 +191,7 @@ F 3 "" H 9300 3450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1D6E43
 P 9550 3450
 F 0 "#PWR?" H 9550 3200 50  0001 C CNN
@@ -236,7 +202,7 @@ F 3 "" H 9550 3450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1D6E6C
 P 9800 3450
 F 0 "#PWR?" H 9800 3200 50  0001 C CNN
@@ -247,7 +213,7 @@ F 3 "" H 9800 3450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1D6E95
 P 10050 3450
 F 0 "#PWR?" H 10050 3200 50  0001 C CNN
@@ -322,7 +288,7 @@ SENSEA
 Text GLabel 6500 1550 2    55   Input ~ 0
 SENSEB
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1D9F74
 P 5250 5350
 F 0 "#PWR?" H 5250 5100 50  0001 C CNN
@@ -335,7 +301,7 @@ $EndComp
 Wire Wire Line
 	5100 5150 5100 5250
 Wire Wire Line
-	5100 5250 5400 5250
+	5100 5250 5200 5250
 Wire Wire Line
 	5250 5250 5250 5350
 Wire Wire Line
@@ -348,7 +314,7 @@ Wire Wire Line
 	5400 5250 5400 5150
 Connection ~ 5300 5250
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1DA251
 P 5050 850
 F 0 "#PWR?" H 5050 700 50  0001 C CNN
@@ -359,7 +325,7 @@ F 3 "" H 5050 850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CP_Small C?
+L WindowDriverPcb-rescue:CP_Small C?
 U 1 1 5B1DA45A
 P 2850 1900
 F 0 "C?" H 2860 1970 50  0000 L CNN
@@ -370,7 +336,7 @@ F 3 "" H 2850 1900 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R_Small R?
+L WindowDriverPcb-rescue:R_Small R?
 U 1 1 5B1DA4C9
 P 4200 1200
 F 0 "R?" H 4230 1220 50  0000 L CNN
@@ -381,7 +347,7 @@ F 3 "" H 4200 1200 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L L_Small L?
+L WindowDriverPcb-rescue:L_Small L?
 U 1 1 5B1DA53E
 P 5300 900
 F 0 "L?" H 5330 940 50  0000 L CNN
@@ -392,7 +358,7 @@ F 3 "" H 5300 900 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Crystal_Small Y?
+L WindowDriverPcb-rescue:Crystal_Small Y?
 U 1 1 5B1DA581
 P 4150 2050
 F 0 "Y?" H 4150 2150 50  0000 C CNN
@@ -403,7 +369,7 @@ F 3 "" H 4150 2050 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L C_Small C?
+L WindowDriverPcb-rescue:C_Small C?
 U 1 1 5B1DA8EF
 P 4050 2800
 F 0 "C?" H 4060 2870 50  0000 L CNN
@@ -418,7 +384,7 @@ Wire Wire Line
 Wire Wire Line
 	4050 2650 4050 2700
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1DABAD
 P 4050 3000
 F 0 "#PWR?" H 4050 2750 50  0001 C CNN
@@ -431,15 +397,15 @@ $EndComp
 Wire Wire Line
 	4050 2900 4050 3000
 Wire Wire Line
-	4000 1850 4250 1850
+	4000 1850 4150 1850
 Wire Wire Line
 	4150 1850 4150 1950
 Wire Wire Line
-	4000 2250 4250 2250
+	4000 2250 4150 2250
 Wire Wire Line
 	4150 2250 4150 2150
 $Comp
-L C_Small C?
+L WindowDriverPcb-rescue:C_Small C?
 U 1 1 5B1DAFB8
 P 3900 1850
 F 0 "C?" H 3910 1920 50  0000 L CNN
@@ -450,7 +416,7 @@ F 3 "" H 3900 1850 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L C_Small C?
+L WindowDriverPcb-rescue:C_Small C?
 U 1 1 5B1DB079
 P 3900 2250
 F 0 "C?" H 3910 2320 50  0000 L CNN
@@ -461,7 +427,7 @@ F 3 "" H 3900 2250 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1DB0CB
 P 3650 2050
 F 0 "#PWR?" H 3650 1800 50  0001 C CNN
@@ -476,12 +442,12 @@ Connection ~ 4150 2250
 Wire Wire Line
 	3800 1850 3650 1850
 Wire Wire Line
-	3650 1850 3650 2250
+	3650 1850 3650 2050
 Wire Wire Line
 	3650 2250 3800 2250
 Connection ~ 3650 2050
 $Comp
-L C_Small C?
+L WindowDriverPcb-rescue:C_Small C?
 U 1 1 5B1DB6C6
 P 5600 1050
 F 0 "C?" H 5610 1120 50  0000 L CNN
@@ -492,7 +458,7 @@ F 3 "" H 5600 1050 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1DB7C7
 P 5850 1100
 F 0 "#PWR?" H 5850 850 50  0001 C CNN
@@ -505,16 +471,16 @@ $EndComp
 Wire Wire Line
 	5350 1150 5350 1050
 Wire Wire Line
-	5350 1050 5500 1050
+	5350 1050 5450 1050
 Wire Wire Line
 	5450 1050 5450 900 
 Wire Wire Line
 	5450 900  5400 900 
 Connection ~ 5450 1050
 Wire Wire Line
-	4950 900  5200 900 
+	4950 900  5050 900 
 Wire Wire Line
-	5050 850  5050 1150
+	5050 850  5050 900 
 Wire Wire Line
 	5150 1150 5150 900 
 Connection ~ 5150 900 
@@ -526,7 +492,7 @@ Wire Wire Line
 Wire Wire Line
 	5850 1050 5850 1100
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1DC41F
 P 4200 1000
 F 0 "#PWR?" H 4200 850 50  0001 C CNN
@@ -537,13 +503,13 @@ F 3 "" H 4200 1000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4100 1450 4250 1450
+	4100 1450 4200 1450
 Wire Wire Line
 	4200 1450 4200 1300
 Wire Wire Line
 	4200 1100 4200 1000
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1DC7C9
 P 3000 1700
 F 0 "#PWR?" H 3000 1550 50  0001 C CNN
@@ -554,7 +520,7 @@ F 3 "" H 3000 1700 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C_Small C?
+L WindowDriverPcb-rescue:C_Small C?
 U 1 1 5B1DC8AB
 P 3150 1900
 F 0 "C?" H 3160 1970 50  0000 L CNN
@@ -565,7 +531,7 @@ F 3 "" H 3150 1900 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1DC937
 P 3000 2100
 F 0 "#PWR?" H 3000 1850 50  0001 C CNN
@@ -578,7 +544,7 @@ $EndComp
 Wire Wire Line
 	3000 1700 3000 1750
 Wire Wire Line
-	2850 1750 3150 1750
+	2850 1750 3000 1750
 Wire Wire Line
 	2850 1750 2850 1800
 Wire Wire Line
@@ -587,7 +553,7 @@ Connection ~ 3000 1750
 Wire Wire Line
 	2850 2000 2850 2050
 Wire Wire Line
-	2850 2050 3150 2050
+	2850 2050 3000 2050
 Wire Wire Line
 	3000 2050 3000 2100
 Wire Wire Line
@@ -618,7 +584,7 @@ IN1
 Text GLabel 8000 3100 0    55   Input ~ 0
 IN1
 $Comp
-L R_Small R?
+L WindowDriverPcb-rescue:R_Small R?
 U 1 1 5B1DD5FE
 P 8400 3850
 F 0 "R?" H 8430 3870 50  0000 L CNN
@@ -629,7 +595,7 @@ F 3 "" H 8400 3850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1DD79C
 P 8900 3400
 F 0 "#PWR?" H 8900 3150 50  0001 C CNN
@@ -640,7 +606,7 @@ F 3 "" H 8900 3400 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R_Small R?
+L WindowDriverPcb-rescue:R_Small R?
 U 1 1 5B1DD83D
 P 8650 3850
 F 0 "R?" H 8680 3870 50  0000 L CNN
@@ -655,11 +621,11 @@ Wire Wire Line
 Wire Wire Line
 	8500 3350 8400 3350
 Wire Wire Line
-	8400 3350 8400 3750
+	8400 3350 8400 3700
 Wire Wire Line
-	8650 3750 8650 3300
+	8650 3750 8650 3700
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1DDC84
 P 8500 4050
 F 0 "#PWR?" H 8500 3800 50  0001 C CNN
@@ -672,7 +638,7 @@ $EndComp
 Wire Wire Line
 	8400 3950 8400 4000
 Wire Wire Line
-	8400 4000 8650 4000
+	8400 4000 8500 4000
 Wire Wire Line
 	8500 4000 8500 4050
 Wire Wire Line
@@ -718,7 +684,7 @@ TX
 Text GLabel 6500 4150 2    55   Input ~ 0
 RX
 $Comp
-L HEADER_5x2 J?
+L WindowDriverPcb-rescue:HEADER_5x2 J?
 U 1 1 5B1DF674
 P 2600 4800
 F 0 "J?" H 2600 5100 60  0000 C CNN
@@ -729,7 +695,7 @@ F 3 "" H 2600 4800 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1DF8AF
 P 2900 4550
 F 0 "#PWR?" H 2900 4400 50  0001 C CNN
@@ -740,7 +706,7 @@ F 3 "" H 2900 4550 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1DFB22
 P 2900 5150
 F 0 "#PWR?" H 2900 4900 50  0001 C CNN
@@ -757,7 +723,7 @@ Wire Wire Line
 Wire Wire Line
 	2750 4700 2900 4700
 Wire Wire Line
-	2900 4700 2900 5150
+	2900 4700 2900 4800
 Wire Wire Line
 	2750 4800 2900 4800
 Connection ~ 2900 4800
@@ -785,7 +751,7 @@ Text GLabel 2350 5000 0    55   Input ~ 0
 MISO
 NoConn ~ 2450 4700
 $Comp
-L HEADER_2 J?
+L WindowDriverPcb-rescue:HEADER_2 J?
 U 1 1 5B1E0DF2
 P 1150 1250
 F 0 "J?" H 1150 1400 60  0000 C CNN
@@ -796,7 +762,7 @@ F 3 "" H 1150 1250 60  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1E1289
 P 1500 1150
 F 0 "#PWR?" H 1500 1000 50  0001 C CNN
@@ -807,7 +773,7 @@ F 3 "" H 1500 1150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1E12D9
 P 1500 1400
 F 0 "#PWR?" H 1500 1150 50  0001 C CNN
@@ -826,7 +792,7 @@ Wire Wire Line
 Wire Wire Line
 	1500 1300 1500 1400
 $Comp
-L LED D?
+L WindowDriverPcb-rescue:LED D?
 U 1 1 5B1E1597
 P 1800 1050
 F 0 "D?" H 1800 1150 50  0000 C CNN
@@ -837,7 +803,7 @@ F 3 "" H 1800 1050 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1E16A4
 P 1800 800
 F 0 "#PWR?" H 1800 650 50  0001 C CNN
@@ -848,7 +814,7 @@ F 3 "" H 1800 800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1E16F7
 P 1800 1500
 F 0 "#PWR?" H 1800 1250 50  0001 C CNN
@@ -859,7 +825,7 @@ F 3 "" H 1800 1500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R_Small R?
+L WindowDriverPcb-rescue:R_Small R?
 U 1 1 5B1E18EE
 P 1800 1350
 F 0 "R?" H 1830 1370 50  0000 L CNN
@@ -876,7 +842,7 @@ Wire Wire Line
 Wire Wire Line
 	1800 1450 1800 1500
 $Comp
-L HEADER_2 J?
+L WindowDriverPcb-rescue:HEADER_2 J?
 U 1 1 5B1E1D98
 P 1150 2450
 F 0 "J?" H 1150 2600 60  0000 C CNN
@@ -887,7 +853,7 @@ F 3 "" H 1150 2450 60  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L +6V #PWR?
+L power:+6V #PWR?
 U 1 1 5B1E2472
 P 1500 2350
 F 0 "#PWR?" H 1500 2200 50  0001 C CNN
@@ -898,7 +864,7 @@ F 3 "" H 1500 2350 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1E25E9
 P 1500 2550
 F 0 "#PWR?" H 1500 2300 50  0001 C CNN
@@ -917,7 +883,7 @@ Wire Wire Line
 Wire Wire Line
 	1500 2500 1250 2500
 $Comp
-L RJ45 J?
+L WindowDriverPcb-rescue:RJ45 J?
 U 1 1 5B1E2B81
 P 9900 4700
 F 0 "J?" H 10100 5200 50  0000 C CNN
@@ -953,7 +919,7 @@ OUTA2
 Text GLabel 10500 4550 2    55   Input ~ 0
 CONTACT1
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1E443F
 P 10600 4350
 F 0 "#PWR?" H 10600 4200 50  0001 C CNN
@@ -964,7 +930,7 @@ F 3 "" H 10600 4350 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1E45C4
 P 10600 5150
 F 0 "#PWR?" H 10600 4900 50  0001 C CNN
@@ -979,7 +945,7 @@ Wire Wire Line
 Wire Wire Line
 	10600 5050 10600 5150
 $Comp
-L RJ45 J?
+L WindowDriverPcb-rescue:RJ45 J?
 U 1 1 5B1E4939
 P 9900 5950
 F 0 "J?" H 10100 6450 50  0000 C CNN
@@ -1006,7 +972,7 @@ Wire Wire Line
 Wire Wire Line
 	10500 5700 10500 5650
 $Comp
-L +5V #PWR?
+L power:+5V #PWR?
 U 1 1 5B1E5204
 P 10500 5650
 F 0 "#PWR?" H 10500 5500 50  0001 C CNN
@@ -1017,7 +983,7 @@ F 3 "" H 10500 5650 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR?
+L power:GND #PWR?
 U 1 1 5B1E5263
 P 10500 6350
 F 0 "#PWR?" H 10500 6100 50  0001 C CNN
@@ -1047,4 +1013,66 @@ Wire Wire Line
 	6250 4750 6500 4750
 Wire Wire Line
 	6250 4850 6500 4850
+Wire Wire Line
+	9300 2250 10200 2250
+Wire Wire Line
+	9300 2250 9300 3150
+Wire Wire Line
+	9550 2550 10200 2550
+Wire Wire Line
+	9550 2550 9550 3150
+Wire Wire Line
+	9800 2750 10200 2750
+Wire Wire Line
+	9800 2750 9800 3150
+Wire Wire Line
+	10050 3050 10200 3050
+Wire Wire Line
+	10050 3050 10050 3150
+Wire Wire Line
+	8750 1900 8750 2000
+Wire Wire Line
+	9300 1900 9550 1900
+Wire Wire Line
+	9550 1900 9800 1900
+Wire Wire Line
+	9800 1900 10050 1900
+Wire Wire Line
+	5200 5250 5250 5250
+Wire Wire Line
+	5250 5250 5300 5250
+Wire Wire Line
+	5300 5250 5400 5250
+Wire Wire Line
+	4150 1850 4250 1850
+Wire Wire Line
+	4150 2250 4250 2250
+Wire Wire Line
+	3650 2050 3650 2250
+Wire Wire Line
+	5450 1050 5500 1050
+Wire Wire Line
+	5150 900  5200 900 
+Wire Wire Line
+	5050 900  5150 900 
+Wire Wire Line
+	5050 900  5050 1150
+Wire Wire Line
+	3000 1750 3150 1750
+Wire Wire Line
+	3000 2050 3150 2050
+Wire Wire Line
+	8500 4000 8650 4000
+Wire Wire Line
+	8400 3700 8400 3750
+Wire Wire Line
+	8650 3700 8650 3300
+Wire Wire Line
+	4200 1450 4250 1450
+Wire Wire Line
+	2900 4800 2900 4900
+Wire Wire Line
+	2900 4900 2900 5000
+Wire Wire Line
+	2900 5000 2900 5150
 $EndSCHEMATC

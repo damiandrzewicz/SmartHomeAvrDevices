@@ -1,5 +1,6 @@
 //Include main libraries
 #include <avr/io.h>
+#include <util/delay.h>
 
 //Include custom libraries
 #include "RF24/RF24.h"
@@ -61,11 +62,15 @@ int main()
 	/////////////////////////////////////////////
 	//Initialise nRF24l01 connector
 	/////////////////////////////////////////////
+	DDRD |= (1 << PD3);
+	PORTD |= (1 << PD3);
+
+	_delay_ms(200);
+
 	RF24 *radio = RF24::getInstance();
 	radio->registerCallback(nrfCallback);
 	radio->begin();
 	radio->setDataRate(rf24_datarate_e::RF24_2MBPS);
-
 
 	radio->startListening();
 	radio->setDeviceAddress(0x0001);
@@ -101,8 +106,11 @@ void uartCallback(char *cUartData)
 
 void nrfCallback(char *cRadioData, uint8_t nDataLen)
 {
-	//CUart::getInstance()->puts("ReceivedRadio :");
-	//CUart::getInstance()->puts(cRadioData);
-	//CUart::getInstance()->puts("\r\n");
+//	CUart::getInstance()->puts("ReceivedRadio :");
+//	CUart::getInstance()->puts(cRadioData);
+//	CUart::getInstance()->puts("\r\n");
+
+	//RF24::getInstance()->sendDataToAir(cRadioData);
+
 	controller.radioDataReady(cRadioData);
 }

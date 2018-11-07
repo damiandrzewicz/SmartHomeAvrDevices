@@ -6,12 +6,11 @@
  */
 
 #include "servoController.h"
-
-uint8_t CServoController::m_sTimerHandle = 0;
+#include "../utils/utils.h"
 
 CServoController::CServoController() {
 
-	m_sTimerHandle++;
+	//m_sTimerHandle++;
 }
 
 CServoController::~CServoController() {
@@ -26,40 +25,46 @@ void CServoController::registerObjects(CServo *ptr, CQuadratureEncoder *encoder)
 
 void CServoController::event()
 {
-
+	//m_servo->processRunServo(WindowData::Direction::Stop, 100);
+	//if(m_servo->getServoModel()->getManualDriveDirection())
+	//{
+	//	PORTB ^= (1 << PB7);
+	//}
+	m_servo->processRunServo(m_servo->getServoModel()->getManualDriveDirection(), 100);
+	//m_servo->getServoModel()->getManualDriveDirection()
 }
 
 //Timer interface
-void CServoController::incrementtimerTick()
-{
-	m_nTimerValue++;
-}
-
-uint8_t CServoController::getTimerHandle() const
-{
-	return m_sTimerHandle;
-}
-
-bool CServoController::isTimeout()
-{
-	if(m_nTimerValue > (m_sTimeout / 10))
-		return true;
-	else
-		return false;
-}
-
-void CServoController::startTimer()
-{
-	resetTimerValue();
-	CTimer2::getInstance()->Enable(m_sTimerHandle);
-}
-
-void CServoController::stopTimer()
-{
-	CTimer2::getInstance()->Disable(m_sTimerHandle);
-}
-
-void CServoController::resetTimerValue()
-{
-	m_nTimerValue = 0;
-}
+//void CServoController::incrementtimerTick()
+//{
+//	m_nTimerValue++;
+//}
+//
+//uint8_t CServoController::getTimerHandle() const
+//{
+//	return m_sTimerHandle;
+//}
+//
+//bool CServoController::isTimeout()
+//{
+//	if(m_nTimerValue > (m_sTimeout / 10))
+//		return true;
+//	else
+//		return false;
+//}
+//
+//void CServoController::startTimer()
+//{
+//	resetTimerValue();
+//	CTimer2::getInstance()->Enable(m_sTimerHandle);
+//}
+//
+//void CServoController::stopTimer()
+//{
+//	CTimer2::getInstance()->Disable(m_sTimerHandle);
+//}
+//
+//void CServoController::resetTimerValue()
+//{
+//	m_nTimerValue = 0;
+//}

@@ -6,6 +6,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include "BaseController.h"
 
 
@@ -49,6 +50,8 @@ bool CBaseController::parseUartMessageWrapper(
 		CRadioDataParser::OperationDirection radioDir,
 		CUartDataParser::OperationName &operationName)
 {
+	memset(m_cMessage, 0, sizeof(m_cMessage));
+
 	//Parse data
 	if(!m_uartParser.parse(getData()))
 	{
@@ -131,6 +134,8 @@ bool CBaseController::parseRadioMessageWrapper(
 		CUartDataParser::OperationDirection uartDir,
 		CRadioDataParser::OperationName &operationName)
 {
+	memset(m_cMessage, 0, sizeof(m_cMessage));
+
 	//Parse data
 	if(!m_radioParser.parse(getData()))
 	{

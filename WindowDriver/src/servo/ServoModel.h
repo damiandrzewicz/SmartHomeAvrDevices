@@ -96,7 +96,7 @@ private:
    uint8_t m_nCalibrateStep = 0;
 };
 
-class CServoModel : public CBlindMetadata, public CBlindState, public CBlindCalibrate
+class CServoModel : public CBlindMetadata, public CBlindState, public CBlindCalibrate, public CBlindManualDrive
 {
 public:
 	CServoModel(uint8_t nBlindNo);

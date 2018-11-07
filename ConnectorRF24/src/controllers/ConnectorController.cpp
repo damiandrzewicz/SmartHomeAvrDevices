@@ -25,11 +25,13 @@ void CConnectorController::eventLoop()
 	//Process messaged from Connector to Device
 	if(m_bRadioDataReady && !m_bWaitingForUartResponse)
 	{
+
 		if(!parseRadioMessageWrapper(
 				CRadioDataParser::OperationDirection::Request,
 				CUartDataParser::OperationDirection::Request,
 				m_radioOperationName))
 		{
+			//RF24::getInstance()->sendDataToAir("here");
 			RF24::getInstance()->sendDataToAir(m_cMessage);
 		}
 		else
@@ -148,14 +150,20 @@ void CConnectorController::eventLoop()
 		}
 		else
 		{
+
 			parseUartMessageWrapper(
 					CUartDataParser::OperationDirection::Response,
 					CRadioDataParser::OperationDirection::Response,
 					m_uartOperationName);
+
 		}
 
 		RF24::getInstance()->sendDataToAir(m_cMessage);
+
+		//CUart::getInstance()->puts("Data:");
 		//CUart::getInstance()->puts(m_cMessage);
+		//CUart::getInstance()->puts("\n");
+
 
 		//Clear flag
 		m_bProcessRadioResponseStep = false;

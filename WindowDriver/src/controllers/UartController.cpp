@@ -178,7 +178,7 @@ bool CUartController::processModelMessage()
 			return false;
 		}
 
-		strcpy(cContext, "ok");
+		strcpy(cContext, "$ok$");
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetBlindState)
 	{
@@ -220,7 +220,7 @@ bool CUartController::processModelMessage()
 					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
-		strcpy(cContext, "ok");
+		strcpy(cContext, "$ok$");
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetCalibrateStep)
 	{
@@ -238,7 +238,7 @@ bool CUartController::processModelMessage()
 					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
-		strcpy(cContext, "ok");
+		strcpy(cContext, "$ok$");
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::NotSupported)
 	{
@@ -275,8 +275,9 @@ bool CUartController::processBlindMetadata(CBlindMetadata &refBlindMetadata)
 
 bool CUartController::processManualDrive(CBlindManualDrive &refManualDrive)
 {
-	//TODO
-	return false;
+	uint8_t nPos = refManualDrive.getBlindNumber() - 1;
+	m_servoModelArr[nPos]->setManualDriveDirection(refManualDrive.getManualDriveDirection());
+	return true;
 }
 
 bool CUartController::readBlindState(CBlindState &refBlindState)

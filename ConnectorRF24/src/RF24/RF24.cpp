@@ -154,6 +154,7 @@ void RF24::eventRF24()
 {
 	if(available())
 	{
+		//memset(spi_rxbuff, 0, sizeof(spi_rxbuff));
 		//read( &spi_rxbuff, sizeof(spi_rxbuff) );
 		readToCircularBuffer();
 	}
@@ -1306,6 +1307,8 @@ uint8_t RF24::read_payload(void* buf, uint8_t data_len)
 
 uint8_t RF24::readPayloadToCircularBuffer()
 {
+
+
 	uint8_t status;
 	uint8_t dataLen = payload_size;
 	uint8_t blank_len = dynamic_payloads_enabled ? 0 : payload_size - dataLen;
@@ -1321,6 +1324,7 @@ uint8_t RF24::readPayloadToCircularBuffer()
 				spi_rxbuff[m_nBuffHeader++] = data;
 			else
 			{
+				spi_rxbuff[m_nBuffHeader] ='\0';
 				m_nBuffHeader = 0;
 				m_bNewLine = true;
 			}

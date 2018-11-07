@@ -93,10 +93,13 @@ int main()
 	uartController.setServoModel1(servo1.getServoModel());
 	uartController.setServoModel2(servo2.getServoModel());
 
-
-
-
 	sei();
+
+	DDRC |= (1 << PC0);
+	DDRC |= (1 << PC1);
+
+	//PORTC |= (1 << PC0);
+	//PORTC &= ~(1 << PC1);
 
 	//DDRB |= (1 << PB7);
 
@@ -123,7 +126,7 @@ int main()
 		uartController.loopEvent();
 
 		//Servo events
-		//servoController1.event();
+		servoController1.event();
 		//servoController1.event();
 
 	}
@@ -137,11 +140,6 @@ void uartCallback(char *data)
 	uartController.uartDataReady(data);
 }
 
-void timerCallback()
-{
-	servoController1.incrementtimerTick();
-	servoController1.incrementtimerTick();
-}
 
 
 
