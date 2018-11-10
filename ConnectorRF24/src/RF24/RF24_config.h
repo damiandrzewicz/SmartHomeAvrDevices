@@ -31,6 +31,7 @@
 #define TO_HEX(i) (i <= 9 ? '0' + i : 'A' - 10 + i)
 
 #define MAXIMUM_PAYLOAD_SIZE 32
+#define DEFAULT_ADDRESS "9999"
 
 #define IRQ 	PD2			//IRQ PIN
 
@@ -62,6 +63,10 @@
 
 #define CE_HIGH  CE_PORT |=  (1<<CE)	//make CE high macro
 #define CE_LOW   CE_PORT &= ~(1<<CE)	//make CE low macro
+
+#define POWER_DDR DDRD
+#define POWER_PORT PORTD
+#define POWER_PIN PD3
 
 #endif // __RF24_CONFIG_H__
 

@@ -6,8 +6,12 @@
  */
 
 #pragma once
+
+#include <avr/eeprom.h>
 #include <avr/io.h>
 //#include "servo.h"
+
+
 
 class WindowData
 {
@@ -31,21 +35,33 @@ private:
 	uint8_t m_nBlindNo = 0;
 };
 
+struct TBlindMetadata
+{
+	bool isMetadataInitialized = false;
+	WindowData::BlindType blindType = WindowData::BlindType::None;
+	WindowData::Visibility visibility = WindowData::Visibility::None;
+};
+
 class CBlindMetadata : virtual public CBlindBase
 {
 public:
 	CBlindMetadata(uint8_t nBlindNo = 0);
     virtual ~CBlindMetadata();
 
-    virtual void setBlindType(WindowData::BlindType blindNo);
-    virtual void setBlindVisibility(WindowData::Visibility val);
+    //virtual void setBlindType(WindowData::BlindType blindNo);
+    //virtual void setBlindVisibility(WindowData::Visibility val);
+    //void setInitialized(bool val);
+    void setBlindMetadataObject(const TBlindMetadata &val);
 
-    WindowData::BlindType getBlindType()const;
-    WindowData::Visibility getBlindVisibility()const;
+    //WindowData::BlindType getBlindType()const;
+    //WindowData::Visibility getBlindVisibility()const;
+    //bool isInitialized() const;
+    TBlindMetadata &getBlindMetadataObject();
 
 private:
-	WindowData::BlindType m_blindType = WindowData::BlindType::None;
-	WindowData::Visibility m_blindVisibility = WindowData::Visibility::None;
+	//WindowData::BlindType m_blindType = WindowData::BlindType::None;
+	//WindowData::Visibility m_blindVisibility = WindowData::Visibility::None;
+    TBlindMetadata m_metadata;
 };
 
 class CBlindManualDrive : virtual public CBlindBase
@@ -83,6 +99,11 @@ private:
    bool m_bIsWindowClosed = false;
 };
 
+struct TBlindCalibrateMetadata
+{
+	uint8_t m_nIsCalibrated = false;
+};
+
 class CBlindCalibrate : virtual public CBlindBase
 {
 public:
@@ -90,15 +111,29 @@ public:
    virtual ~CBlindCalibrate();
 
    virtual void setCalibrateStep(uint8_t val);
+   void setCalibrateMetadataObject(const TBlindCalibrateMetadata &val);
+
    uint8_t getCalibrateStep()const;
+   TBlindCalibrateMetadata &getCalibrateMetadataObject();
 
 private:
    uint8_t m_nCalibrateStep = 0;
+   TBlindCalibrateMetadata m_calibrateMetadata;
 };
+
+static TBlindMetadata EEMEM eem_blindMetadataArr[2];
+static TBlindCalibrateMetadata EEMEM eem_blindCalibrateMetadata[2];
 
 class CServoModel : public CBlindMetadata, public CBlindState, public CBlindCalibrate, public CBlindManualDrive
 {
 public:
 	CServoModel(uint8_t nBlindNo);
+
+	void writeBlindMetadataToEeprom();
+	TBlindMetadata readBlindMetadataFromEeprom();
+
+	void writeBlindCalibrateMetadataToEeprom();
+	TBlindCalibrateMetadata readBlindCalibrateMetadataFromEeprom();
+
 };
 

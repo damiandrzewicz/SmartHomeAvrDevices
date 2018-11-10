@@ -172,6 +172,7 @@ void CTerminalController::eventLoop()
 
 			else if( (millis () - m_lTime) > m_nTimeoutValue)
 			{
+
 				m_bWaitingForResponse = false;
 				m_bTimeout = true;
 				m_bProcessResponseStep = true;

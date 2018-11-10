@@ -52,7 +52,7 @@ public:
 	void putint(int value, int radix);
 	void puts_P(const char *s);
 	char * getStr(char * buf);
-	void RX_STR_EVENT(/*char * rbuf*/);
+	void RX_STR_EVENT(char * rbuf);
 	void registerEventCallback(void (*callback)(char * pBuf));
 
 	friend void USART_UDRE_vect (void);
@@ -81,6 +81,8 @@ private:
 	void (*uart_rx_str_event_callback)(char * pBuf);
 
 	static uint16_t m_sBaudRate;
+
+public:
 	char m_uartBuffer[100] = {};
 };
 

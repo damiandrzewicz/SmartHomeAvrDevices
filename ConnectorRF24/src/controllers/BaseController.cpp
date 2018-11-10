@@ -9,6 +9,8 @@
 #include <string.h>
 #include "BaseController.h"
 
+#include "../uart/uart.h"
+
 
 CBaseController::CBaseController() {
 	m_radioParser.registerTokenParser(&m_tokenParser);
@@ -50,7 +52,7 @@ bool CBaseController::parseUartMessageWrapper(
 		CRadioDataParser::OperationDirection radioDir,
 		CUartDataParser::OperationName &operationName)
 {
-	memset(m_cMessage, 0, sizeof(m_cMessage));
+	//memset(m_cMessage, 0, sizeof(m_cMessage));
 
 	//Parse data
 	if(!m_uartParser.parse(getData()))
@@ -71,16 +73,8 @@ bool CBaseController::parseUartMessageWrapper(
 
 	//Get operation name
 	operationName = m_uartParser.getOperationName();
-	if(operationName == CUartDataParser::OperationName::SayHello)
-	{
-		//TODO
-//		m_uartParser.createMessage(
-//				operationName,
-//				CUartDataParser::OperationDirection::Response,
-//				(char*)pgm_read_word( &DeviceStaticSettings[0] ),
-//				m_cMessage);
-	}
-	else if(operationName == CUartDataParser::OperationName::SetConnectorAddress)
+
+	if(operationName == CUartDataParser::OperationName::SetConnectorAddress)
 	{
 		RF24::getInstance()->setDeviceAddress(atoi(m_uartParser.getContext()));
 		m_uartParser.createMessage(
@@ -99,23 +93,32 @@ bool CBaseController::parseUartMessageWrapper(
 				temp,
 				m_cMessage);
 	}
-	else if(operationName == CUartDataParser::OperationName::RestartConnector)
-	{
-		//TODO implement restarting connector
-	}
 	else if(operationName == CUartDataParser::OperationName::SendDataToDevice)
 	{
-		//CUart::getInstance()->puts("hh1\r\n");
 		m_radioParser.createMessage(
 				CRadioDataParser::OperationName::PassDataByAir,
 				radioDir,
 				m_uartParser.getContext(),
 				m_cMessage);
-		//CUart::getInstance()->puts(m_cMessage);
-		//RF24::getInstance()->sendDataToAir(m_cMessage);
-
-		//m_bWaitingForResponse = true;
-		//CUart::getInstance()->puts("hh2\r\n");
+	}
+	else if(operationName == CUartDataParser::OperationName::PowerUpConnector)
+	{
+		RF24::getInstance()->realPowerDown();
+		RF24::getInstance()->realPowerUp();
+		m_uartParser.createMessage(
+				operationName,
+				CUartDataParser::OperationDirection::Response,
+				m_uartParser.getAdditionalText(CUartDataParser::AdditionalTexts::OkResponse),
+				m_cMessage);
+	}
+	else if(operationName == CUartDataParser::OperationName::PowerDownConnector)
+	{
+		RF24::getInstance()->realPowerDown();
+		m_uartParser.createMessage(
+				operationName,
+				CUartDataParser::OperationDirection::Response,
+				m_uartParser.getAdditionalText(CUartDataParser::AdditionalTexts::OkResponse),
+				m_cMessage);
 	}
 	else if(operationName == CUartDataParser::OperationName::NotSupported)
 	{
@@ -134,15 +137,13 @@ bool CBaseController::parseRadioMessageWrapper(
 		CUartDataParser::OperationDirection uartDir,
 		CRadioDataParser::OperationName &operationName)
 {
-	memset(m_cMessage, 0, sizeof(m_cMessage));
+	//memset(m_cMessage, 0, sizeof(m_cMessage));
 
 	//Parse data
 	if(!m_radioParser.parse(getData()))
 	{
 		m_radioParser.createErrorMsg(
 				static_cast<uint8_t>(CRadioDataParser::Error::ParserError), m_cMessage);
-		//RF24::getInstance()->sendDataToAir(m_cMessage);
-		//m_bRadioDataReady = false;
 		return false;
 	}
 
@@ -152,44 +153,25 @@ bool CBaseController::parseRadioMessageWrapper(
 	{
 		m_radioParser.createErrorMsg(
 				static_cast<uint8_t>(CRadioDataParser::Error::WrongOperationDirection), m_cMessage);
-		//RF24::getInstance()->sendDataToAir(m_cMessage);
-		//m_bRadioDataReady = false;
+
 		return false;
 	}
-	//CUart::getInstance()->puts(m_radioParser.getOperationDirectonText(dir));
-	//CUart::getInstance()->puts("\r\n");
 
 	//Get operation name
 	operationName = m_radioParser.getOperationName();
-	//CUart::getInstance()->puts(m_radioParser.getOperationNameText(m_radioOperationName));
-	//CUart::getInstance()->puts("\r\n");
-	//CUart::getInstance()->puts(m_uartParser.getOperationNameText(m_operationName));
+
 	if(operationName == CRadioDataParser::OperationName::PassDataByAir)
 	{
-		//CUart::getInstance()->puts("processing\r\n");
 		m_uartParser.createMessage(
 				CUartDataParser::OperationName::SendDataToDevice,
 				/*CParserInterface::OperationDirection::Request*/uartDir,
 				m_radioParser.getContext(),
 				m_cMessage);
-//			RF24::getInstance()->setDeviceAddress(atoi(m_uartParser.getContext()));
-//			m_radioParser.createMessage(
-//					m_operationName,
-//					CUartDataParser::OperationDirection::Response,
-//					(char*)pgm_read_word( &DeviceStaticSettings[0] ),
-//					m_cMessage);
-
-		//CUart::getInstance()->puts(m_cMessage);
-
-		//m_bWaitingForUartResponse = true;
 	}
 	else if(operationName == CRadioDataParser::OperationName::NotSupported)
 	{
-		//CUart::getInstance()->puts("notsuppo\r\n");
 		m_radioParser.createErrorMsg(
 				static_cast<uint8_t>(CRadioDataParser::Error::WrongOperationName), m_cMessage);
-		//RF24::getInstance()->sendDataToAir(m_cMessage);
-		//m_bRadioDataReady = false;
 		return false;
 	}
 

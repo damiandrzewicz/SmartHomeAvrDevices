@@ -23,6 +23,11 @@ public:
         SetBlindState,          //Set openPercent and openSpeed ---> return OK or ERR
         GetBlindState,          //Get openPercent and openSpeed or ERR
         SetCalibrateStep,       //Set calibrate step        ---> return Ok or ERR
+		GetCalibrateState,
+
+		RestartDevice,
+		SayHello,
+
         NotSupported
 	};
 
@@ -54,6 +59,7 @@ public:
 	bool parseSetBlindState(CBlindState &refBlindState);
 
 	bool parseSetCalibrate(CBlindCalibrate &refBlindCalibrate);
+	bool parseGetCalibrateState(CBlindCalibrate &refBlindCalibrate);
 
 	//bool parseSetBlindType(SBlindType &refBlindState);
 	//bool parseSetBlindState()
@@ -61,6 +67,9 @@ public:
 	//Outcoming
 	bool createGetBlindMetadataContext(CBlindMetadata &refBlindMetadata, char *pResult = nullptr);
 	bool createGetBlindStateContext(CBlindState &refBlindState, char *pResult = nullptr);
+	bool createGetBlindCalibrateContext(CBlindCalibrate &refBlindCalibrate, char *pResult = nullptr);
+
+	bool createSayHelloContext(const char *pName, const char *pAddress, char *pResult = nullptr);
 
 protected:
 

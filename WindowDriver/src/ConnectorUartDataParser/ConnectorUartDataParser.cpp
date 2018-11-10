@@ -12,10 +12,10 @@
 
 const char *const OpNameText[] PROGMEM = {
 		"SDTD",		//SendDataToDevice
-		"SH",		//SayHello
 		"SCA",		//SetConnectorAddress
 		"GCA",		//GetConnectorAddress
-		"RC",		//RestartConnector
+		"PUC",		//PowerUpConnector,
+		"PDC",		//PowerDownConnector,
 		"no"		//NotSupported
 };
 
@@ -114,14 +114,14 @@ CConnectorUartDataParser::OperationName CConnectorUartDataParser::parseOperation
 {
 	if(!strcmp(pOperationName, getOperationNameText(OperationName::SendDataToDevice)))
 		return OperationName::SendDataToDevice;
-	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SayHello)))
-		return OperationName::SayHello;
 	else if(!strcmp(pOperationName, getOperationNameText(OperationName::GetConnectorAddress)))
 		return OperationName::GetConnectorAddress;
-	else if(!strcmp(pOperationName, getOperationNameText(OperationName::RestartConnector)))
-		return OperationName::RestartConnector;
 	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SetConnectorAddress)))
 		return OperationName::SetConnectorAddress;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::PowerUpConnector)))
+		return OperationName::PowerUpConnector;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::PowerDownConnector)))
+		return OperationName::PowerDownConnector;
 	else /*if(!strcmp(pOperationName, getOperationNameText(OperationName::NotSupported)))*/
 		return OperationName::NotSupported;
 }

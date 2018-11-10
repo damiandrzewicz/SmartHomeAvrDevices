@@ -16,6 +16,7 @@
 #include "../utils/utils.h"
 
 #include "../uart/uart.h"
+#include "../timer/timer.h"
 
 RF24 * RF24::m_sNrfInstance = nullptr;
 bool RF24::m_bIsCreated = false;
@@ -71,6 +72,8 @@ void RF24::setupPins()
 	//MOSI_PORT &= ~(1<<MOSI);
 	//MISO_PORT &= ~(1<<MISO);
 	//SCK_PORT &= ~(1<<SCK);
+
+	POWER_DDR |= (1 << POWER_PIN);	//Set pin direction
 }
 
 bool RF24::begin(void)
@@ -152,23 +155,27 @@ bool RF24::begin(void)
 
 void RF24::eventRF24()
 {
-	if(available())
+	if(m_nIsRadioStarted)
 	{
-		//memset(spi_rxbuff, 0, sizeof(spi_rxbuff));
-		//read( &spi_rxbuff, sizeof(spi_rxbuff) );
-		readToCircularBuffer();
+		if(available())
+		{
+			//memset(spi_rxbuff, 0, sizeof(spi_rxbuff));
+			//read( &spi_rxbuff, sizeof(spi_rxbuff) );
+			readToCircularBuffer();
+		}
+
+		if(!isSending() && isNewLine())
+		{
+			uint8_t nDataSize = strlen( (const char*)(spi_rxbuff));
+			if(nDataSize)
+			{
+				//Call callback
+				pCallback((char*)spi_rxbuff, nDataSize);
+			}
+			m_bNewLine = false;
+		}
 	}
 
-	if(!isSending() && isNewLine())
-	{
-		uint8_t nDataSize = strlen( (const char*)(spi_rxbuff));
-		if(nDataSize)
-		{
-			//Call callback
-			pCallback((char*)spi_rxbuff, nDataSize);
-		}
-		m_bNewLine = false;
-	}
 }
 
 void RF24::registerCallback(void (*ptr)(char *data, uint8_t nLenght))
@@ -634,6 +641,20 @@ void RF24::setDeviceAddress(uint16_t value)
 		openReadingPipe(1, reinterpret_cast<uint8_t*>(buf));
 		m_nAddress = value;
 	}
+}
+
+void RF24::setDeviceAddress(const char *pValue)
+{
+	if(pValue == nullptr)
+		return;
+
+	char buf[6];
+	strcpy(buf, "x");
+	strcat(buf, pValue);
+
+	openWritingPipe(reinterpret_cast<uint8_t*>(buf));
+	openReadingPipe(1, reinterpret_cast<uint8_t*>(buf));
+	m_nAddress = atoi(pValue);
 }
 
 uint16_t RF24::getDeviceAddressAsInt()
@@ -1368,5 +1389,29 @@ uint8_t RF24::spiTrans(uint8_t cmd){
   endTransaction();
 
   return status;
+}
+
+void RF24::startRadio()
+{
+	begin();
+	setDataRate(rf24_datarate_e::RF24_2MBPS);
+	startListening();
+}
+
+void RF24::realPowerUp()
+{
+	POWER_PORT |= (1 << POWER_PIN);
+	_delay_ms(20);
+	startRadio();
+	setDeviceAddress(DEFAULT_ADDRESS);
+	CTimer2::getInstance()->Enable(1);
+	m_nIsRadioStarted = true;
+}
+
+void RF24::realPowerDown()
+{
+	POWER_PORT &= ~(1 << POWER_PIN);
+	CTimer2::getInstance()->Disable(1);
+	m_nIsRadioStarted = false;
 }
 

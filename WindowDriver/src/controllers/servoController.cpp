@@ -23,6 +23,15 @@ void CServoController::registerObjects(CServo *ptr, CQuadratureEncoder *encoder)
 	m_encoder = encoder;
 }
 
+
+
+
+void CServoController::initModelFromEeprom(uint8_t nBlindNo)
+{
+	//TEEPROMMetadata data = readMetadataFromEeprom(nBlindNo);
+	//m_servoModelArr[0]
+}
+
 void CServoController::event()
 {
 	//m_servo->processRunServo(WindowData::Direction::Stop, 100);

@@ -16,6 +16,11 @@ const char *const OpNameText[] PROGMEM = {
         "SBS",					//SetBlindState,
         "GBS",					//GetBlindState,
         "SCS",					//SetCalibrateStep,
+		"GCS",					//GetCalibrateState
+
+		"RD",					//RestartDevice
+		"SH",					//SayHello
+
         "no"					//NotSupported
 };
 
@@ -32,19 +37,20 @@ bool CWindowUartDataParser::parse(char *pData)
 {
 	if(!checkTokenParser())
 			return false;
-
+	//CUart::getInstance()->puts("t1 ");
+	//CUart::getInstance()->puts(pData);
 	//Check trimming chars
 	if(m_pTokenParser->checkTrimmingChars(pData, '!') != TokenParseResult::Ok)
 	{
 		return false;
 	}
-
+	//CUart::getInstance()->puts("t2");
 	//Parse
 	if(m_pTokenParser->parseData(pData, getAdditionalText(AdditionalTexts::ExclMark)) != TokenParseResult::Ok)
 	{
 		return false;
 	}
-
+	//CUart::getInstance()->puts("t3");
 	//Get operation name
 	OperationName opName = parseOperationName(m_pTokenParser->getNextToken());
 	if(opName == OperationName::NotSupported)
@@ -116,6 +122,14 @@ CWindowUartDataParser::OperationName CWindowUartDataParser::parseOperationName(c
 		return OperationName::GetBlindState;
 	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SetCalibrateStep)))
 		return OperationName::SetCalibrateStep;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::GetCalibrateState)))
+		return OperationName::GetCalibrateState;
+
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::SayHello)))
+		return OperationName::SayHello;
+	else if(!strcmp(pOperationName, getOperationNameText(OperationName::RestartDevice)))
+		return OperationName::RestartDevice;
+
 	else /*if(!strcmp(pOperationName, getOperationNameText(OperationName::NotSupported)))*/
 		return OperationName::NotSupported;
 }
@@ -170,13 +184,14 @@ bool CWindowUartDataParser::parseSetBlindMetadata(CBlindMetadata &refBlindMetada
 	//CUart::getInstance()->puts(cTemp);
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
-	refBlindMetadata.setBlindType( static_cast<WindowData::BlindType>(atoi(cTemp)));
+	refBlindMetadata.getBlindMetadataObject().blindType = static_cast<WindowData::BlindType>(atoi(cTemp));
 
 	//Get blind visibility
 	cTemp = m_pTokenParser->getNextToken();
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
-	refBlindMetadata.setBlindVisibility( static_cast<WindowData::Visibility>(atoi(cTemp)));
+	refBlindMetadata.getBlindMetadataObject().visibility = static_cast<WindowData::Visibility>(atoi(cTemp));
+
 
 	return true;
 }
@@ -244,17 +259,30 @@ bool CWindowUartDataParser::parseSetCalibrate(CBlindCalibrate &refBlindCalibrate
 	return true;
 }
 
+bool CWindowUartDataParser::parseGetCalibrateState(CBlindCalibrate &refBlindCalibrate)
+{
+	if(!parseBlindNo(refBlindCalibrate.getBlindNumber()))
+		return false;
+
+	return true;
+}
+
 bool CWindowUartDataParser::createGetBlindMetadataContext(CBlindMetadata &refBlindMetadata, char *pResult)
 {
 	if(pResult == nullptr)
 		return false;
 
 	char cTemp[3];
-	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindType()), cTemp, 10);
+	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().blindType), cTemp, 10);
 	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
-	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindVisibility()), cTemp, 10);
+	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().visibility), cTemp, 10);
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, cTemp);
+
+	//Isinitialized
+	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().isMetadataInitialized), cTemp, 10);
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
@@ -285,6 +313,43 @@ bool CWindowUartDataParser::createGetBlindStateContext(CBlindState &refBlindStat
 	strcat(pResult, cTemp);
 
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	return true;
+}
+
+bool CWindowUartDataParser::createGetBlindCalibrateContext(CBlindCalibrate &refBlindCalibrate, char *pResult)
+{
+	if(pResult == nullptr)
+		return false;
+
+	char cTemp[4];
+
+	//IsCalibrated
+	itoa(static_cast<uint8_t>(refBlindCalibrate.getCalibrateMetadataObject().m_nIsCalibrated), cTemp, 10);
+	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, cTemp);
+
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	return true;
+}
+
+bool CWindowUartDataParser::createSayHelloContext(
+		const char *pName,
+		const char *pAddress,
+		char *pResult)
+{
+	if(pResult == nullptr)
+		return false;
+
+	//DeviceName
+	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, pName);
+
+	//DeviceAddress
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, pAddress);
+
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+
 	return true;
 }
 

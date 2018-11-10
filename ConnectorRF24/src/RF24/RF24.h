@@ -48,6 +48,10 @@ public:
 
 	void setupPins();
 
+	void startRadio();
+
+	void realPowerUp();
+	void realPowerDown();
 
 	/**
 	* Checks if the chip is connected to the SPI bus
@@ -332,6 +336,7 @@ public:
 	void openReadingPipe(uint8_t number, const uint8_t *address);
 
 	void setDeviceAddress(uint16_t addr);
+	void setDeviceAddress(const char *pValue);
 
 	/**
 	* Open a pipe for reading
@@ -949,6 +954,8 @@ private:
 	bool m_bIsSending = false;
 
 	uint16_t m_nAddress;
+
+	bool m_nIsRadioStarted = false;
 
 };
 

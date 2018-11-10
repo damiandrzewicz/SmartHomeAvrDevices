@@ -18,11 +18,10 @@
 void uartCallback(char *cUartData);
 void nrfCallback(char *cRadioData, uint8_t nDataLen);
 
-bool bSend = false;
-bool bmode = false;
-void tick()
+
+void healthLed()
 {
-	bSend = true;
+	PORTC ^= (1 << PC0);
 }
 
 #if NRF_MODE == 0
@@ -54,26 +53,20 @@ int main()
 	/////////////////////////////////////////////
 	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 14);
 	timer2->Assign(0, 0, increaseMillis, true);		//This tick is used for timer purposes - time measure
-	timer2->Assign(1, 1000, tick, true);
+	timer2->Assign(1, 1000, healthLed, false);
 	//CUart::getInstance()->puts("hello2\r\n");
+
 
 	sei();
 
 	/////////////////////////////////////////////
 	//Initialise nRF24l01 connector
 	/////////////////////////////////////////////
-	DDRD |= (1 << PD3);
-	PORTD |= (1 << PD3);
 
-	_delay_ms(200);
+
 
 	RF24 *radio = RF24::getInstance();
 	radio->registerCallback(nrfCallback);
-	radio->begin();
-	radio->setDataRate(rf24_datarate_e::RF24_2MBPS);
-
-	radio->startListening();
-	radio->setDeviceAddress(0x0001);
 
 	/////////////////////////////////////////////
 	//Allow interrupts
@@ -82,13 +75,17 @@ int main()
 
 	//CUart::getInstance()->puts("hello3\r\n");
 
+	DDRC |= (1 << PC0);
+	PORTC &= ~(1 << PC0);
+
+	char rbuff[50];
 
 	//Infinity loop
 	while(1)
 	{
 		//Radio event for processing receiving and sending data
 		radio->eventRF24();
-		uart->RX_STR_EVENT();
+		uart->RX_STR_EVENT(rbuff);
 		controller.eventLoop();
 	}
 }
@@ -98,9 +95,14 @@ int main()
 /////////////////////////////////////////////
 void uartCallback(char *cUartData)
 {
-	//CUart::getInstance()->puts("Received Uart:");
-	//CUart::getInstance()->puts(cUartData);
-	//CUart::getInstance()->puts("\r\n");
+//	CUart::getInstance()->puts("Received Uart:[");
+//	CUart::getInstance()->puts(cUartData);
+//	CUart::getInstance()->puts("]\r\n");
+//
+//	CUart::getInstance()->puts("Buff:[");
+//	CUart::getInstance()->puts(CUart::getInstance()->m_uartBuffer);
+//	CUart::getInstance()->puts("]\r\n");
+
 	controller.uartDataReady(cUartData);
 }
 

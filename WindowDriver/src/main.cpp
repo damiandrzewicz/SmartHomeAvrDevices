@@ -13,6 +13,7 @@
 #include "io/io.h"
 #include "uart/uart.h"
 #include "utils/utils.h"
+#include "settings.h"
 
 #include "servo/servo.h"
 #include "encoders/quadratureEncoder.h"
@@ -21,9 +22,6 @@
 #include "controllers/UartController.h"
 
 
-
-
-#define DEVICE_ADDRESS "x0001"
 
 //Encoder variables
 extern CQuadratureEncoder encoderForServo1;
@@ -94,6 +92,8 @@ int main()
 	uartController.setServoModel2(servo2.getServoModel());
 
 	sei();
+
+	//uartController.setConnectorAddress(DEVICE_ADDRESS);
 
 	DDRC |= (1 << PC0);
 	DDRC |= (1 << PC1);

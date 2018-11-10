@@ -8,8 +8,11 @@
 #ifndef SRC_CONTROLLERS_SERVOCONTROLLER_H_
 #define SRC_CONTROLLERS_SERVOCONTROLLER_H_
 
+
 #include "../servo/servo.h"
 #include "../encoders/quadratureEncoder.h"
+
+
 
 class CServoController {
 public:
@@ -27,6 +30,10 @@ public:
 	//void startTimer();
 	//void stopTimer();
 	//void resetTimerValue();
+
+	void initModelFromEeprom(uint8_t nBlindNo);
+
+
 
 
 	void event();

@@ -7,6 +7,9 @@
 
 #include "../uart/uart.h"
 #include "UartController.h"
+#include "../settings.h"
+
+//Per
 
 CUartController::CUartController() {
 	m_connectorUartParser.registerTokenParser(&m_tokenParser);
@@ -39,12 +42,15 @@ void CUartController::clearNotofications()
 void CUartController::setServoModel1(CServoModel *pModel)
 {
 	m_servoModelArr[0] = pModel;
+	//initModelFromEeprom(pModel->getBlindNumber());
+
 	//m_servoModel1 = state;
 }
 
 void CUartController::setServoModel2(CServoModel *pModel)
 {
 	m_servoModelArr[1] = pModel;
+	//initModelFromEeprom(pModel->getBlindNumber());
 	//m_servoModel2 = state;
 }
 
@@ -60,30 +66,13 @@ void CUartController::loopEvent()
 				m_bUartDataReady = false;
 				return;
 		}
-		//Get operation direction
-		if(m_connectorUartParser.getOperationDirection() != CConnectorUartDataParser::OperationDirection::Request)
-		{
-			m_connectorUartParser.createErrorMsg(
-					static_cast<uint8_t>(CConnectorUartDataParser::Error::WrongOperationDirection), m_cUartMessage);
-			CUart::getInstance()->puts(m_cUartMessage);
-			m_bUartDataReady = false;
-			return;
-		}
 
 		//Get operation name
 		//CUart::getInstance()->puts(m_uartParser.getOperationNameText(m_operationName));
-		if(m_connectorUartParser.getOperationName() == CConnectorUartDataParser::OperationName::SendDataToDevice)
-		{
-			processModelMessage();
-			m_connectorUartParser.createMessage(
-					m_connectorUartParser.getOperationName(),
-					CConnectorUartDataParser::OperationDirection::Response,
-					m_cModelMessage,
-					m_cUartMessage);
-			CUart::getInstance()->puts(m_cUartMessage);
-			m_bUartDataReady = false;
-		}
-		else if(m_connectorUartParser.getOperationName() == CConnectorUartDataParser::OperationName::NotSupported)
+		CConnectorUartDataParser::OperationName operationName = m_connectorUartParser.getOperationName();
+		CConnectorUartDataParser::OperationDirection operationDirection = m_connectorUartParser.getOperationDirection();
+
+		if(operationName == CConnectorUartDataParser::OperationName::NotSupported)
 		{
 			m_connectorUartParser.createErrorMsg(
 					static_cast<uint8_t>(CConnectorUartDataParser::Error::WrongOperationName), m_cUartMessage);
@@ -91,11 +80,94 @@ void CUartController::loopEvent()
 			m_bUartDataReady = false;
 			return;
 		}
+
+		if(operationDirection == CConnectorUartDataParser::OperationDirection::Request)
+		{
+			if(operationName == CConnectorUartDataParser::OperationName::SendDataToDevice)
+			{
+				if(prepareMessage())
+				{
+					bool bOperationMatch;
+					processDeviceMessage(bOperationMatch);
+					if(!bOperationMatch)	processModelMessage(bOperationMatch);
+				}
+
+
+
+
+
+				m_connectorUartParser.createMessage(
+						m_connectorUartParser.getOperationName(),
+						CConnectorUartDataParser::OperationDirection::Response,
+						m_cModelMessage,
+						m_cUartMessage);
+				CUart::getInstance()->puts(m_cUartMessage);
+			}
+		}
+		else if(operationDirection == CConnectorUartDataParser::OperationDirection::Response)
+		{
+			const char *pOk = m_connectorUartParser.getAdditionalText(CParserInterface::AdditionalTexts::OkResponse);
+			bool bResponse = false;
+			bResponse = (strcmp(m_connectorUartParser.getContext(), pOk) == 0);
+
+			if(operationName == CConnectorUartDataParser::OperationName::PowerUpConnector)
+			{
+				if(bResponse)
+				{
+					m_bConnectorPowerUp = true;
+				}
+			}
+			else if(operationName == CConnectorUartDataParser::OperationName::PowerDownConnector)
+			{
+				if(bResponse)
+				{
+					m_bConnectorPowerUp = false;
+					m_bConnectorAddressSet = false;
+				}
+			}
+			else if(operationName == CConnectorUartDataParser::OperationName::SetConnectorAddress)
+			{
+				if(bResponse)
+				{
+					m_bConnectorAddressSet = true;
+				}
+			}
+		}
+
 		m_bUartDataReady = false;
+	}
+
+	initConnectorProcess();
+}
+
+void CUartController::setConnectorAddress(const char *pAddress)
+{
+	uint8_t nDeviceAddress = atoi(pAddress);
+	char addressBuff[10];
+	itoa(nDeviceAddress, addressBuff, 10);
+	m_connectorUartParser.createMessage(
+						CConnectorUartDataParser::OperationName::SetConnectorAddress,
+						CConnectorUartDataParser::OperationDirection::Request,
+						addressBuff,
+						m_cUartMessage);
+	CUart::getInstance()->puts(m_cUartMessage);
+}
+
+void CUartController::initConnectorProcess()
+{
+	if(!m_bConnectorPowerUp)
+	{
+		m_connectorUartParser.createMessage(
+							CConnectorUartDataParser::OperationName::PowerUpConnector,
+							CConnectorUartDataParser::OperationDirection::Request,
+							m_connectorUartParser.getAdditionalText(CParserInterface::AdditionalTexts::EmptyContext),
+							m_cUartMessage);
+		CUart::getInstance()->puts(m_cUartMessage);
+		m_bConnectorPowerUp = true;
 	}
 }
 
-bool CUartController::processModelMessage()
+bool CUartController::prepareMessage()
 {
 	//Temporary copy context to uardBuffer
 	strcpy(m_cUartMessage, m_connectorUartParser.getContext());
@@ -115,11 +187,19 @@ bool CUartController::processModelMessage()
 		return false;
 	}
 
+	return true;
+}
+
+bool CUartController::processModelMessage(bool &bFoundMessage)
+{
+	bFoundMessage = false;
 	char cContext[15];
 
 	//Check if operation name is allowed
 	if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetBlindMetadata)
 	{
+		bFoundMessage = true;
+
 		CBlindMetadata blindMetadata;
 		if(!m_windowUartParser.parseSetBlindMetadata(blindMetadata))
 		{
@@ -139,6 +219,8 @@ bool CUartController::processModelMessage()
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetBlindMetadata)
 	{
+		bFoundMessage = true;
+
 		CBlindMetadata blindMetadata;
 		if(!m_windowUartParser.parseGetBlindMetadata(blindMetadata))
 		{
@@ -163,6 +245,8 @@ bool CUartController::processModelMessage()
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::ManualDrive)
 	{
+		bFoundMessage = true;
+
 		CBlindManualDrive manualDrive;
 		if(!m_windowUartParser.parseManualDrive(manualDrive))
 		{
@@ -182,6 +266,8 @@ bool CUartController::processModelMessage()
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetBlindState)
 	{
+		bFoundMessage = true;
+
 		CBlindState blindState;
 		if(!m_windowUartParser.parseGetBlindState(blindState))
 		{
@@ -206,6 +292,8 @@ bool CUartController::processModelMessage()
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetBlindState)
 	{
+		bFoundMessage = true;
+
 		CBlindState blindState;
 		if(!m_windowUartParser.parseSetBlindState(blindState))
 		{
@@ -224,6 +312,8 @@ bool CUartController::processModelMessage()
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SetCalibrateStep)
 	{
+		bFoundMessage = true;
+
 		CBlindCalibrate blindCalibrate;
 		if(!m_windowUartParser.parseSetCalibrate(blindCalibrate))
 		{
@@ -238,6 +328,72 @@ bool CUartController::processModelMessage()
 					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
 			return false;
 		}
+		strcpy(cContext, "$ok$");
+
+	}
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::GetCalibrateState)
+	{
+		bFoundMessage = true;
+
+		CBlindCalibrate blindCalibrate;
+		if(!m_windowUartParser.parseGetCalibrateState(blindCalibrate))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ParserError), m_cModelMessage);
+			return false;
+		}
+
+		if(!readCalibrateState(blindCalibrate))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
+			return false;
+		}
+
+		if(!m_windowUartParser.createGetBlindCalibrateContext(blindCalibrate, cContext))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
+			return false;
+		}
+	}
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::NotSupported)
+	{
+		m_windowUartParser.createErrorMsg(
+				static_cast<uint8_t>(CWindowUartDataParser::Error::WrongOperationName), m_cModelMessage);
+		return false;
+	}
+
+	//Prepare final message
+	m_windowUartParser.createMessage(
+			m_windowUartParser.getOperationName(),
+			CWindowUartDataParser::OperationDirection::Response,
+			cContext,
+			m_cModelMessage);
+
+	return true;
+}
+
+bool CUartController::processDeviceMessage(bool &bFoundMessage)
+{
+	bFoundMessage = false;
+	char cContext[25];
+
+	//Check if operation name is allowed
+
+	if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::SayHello)
+	{
+		bFoundMessage = true;
+		if(!m_windowUartParser.createSayHelloContext(DEVICE_NAME, DEVICE_ADDRESS, cContext))
+		{
+			m_windowUartParser.createErrorMsg(
+					static_cast<uint8_t>(CWindowUartDataParser::Error::ProcessingError), m_cModelMessage);
+			return false;
+		}
+	}
+	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::RestartDevice)
+	{
+		bFoundMessage = true;
 		strcpy(cContext, "$ok$");
 	}
 	else if(m_windowUartParser.getOperationName() == CWindowUartDataParser::OperationName::NotSupported)
@@ -260,16 +416,16 @@ bool CUartController::processModelMessage()
 bool CUartController::readBlindMetadata(CBlindMetadata &refBlindMetadata)
 {
 	uint8_t nPos = refBlindMetadata.getBlindNumber() - 1;
-	refBlindMetadata.setBlindType(m_servoModelArr[nPos]->getBlindType());
-	refBlindMetadata.setBlindVisibility(m_servoModelArr[nPos]->getBlindVisibility());
+	refBlindMetadata.getBlindMetadataObject().blindType = m_servoModelArr[nPos]->getBlindMetadataObject().blindType;
+	refBlindMetadata.getBlindMetadataObject().visibility = m_servoModelArr[nPos]->getBlindMetadataObject().visibility;
 	return true;
 }
 
 bool CUartController::processBlindMetadata(CBlindMetadata &refBlindMetadata)
 {
 	uint8_t nPos = refBlindMetadata.getBlindNumber() - 1;
-	m_servoModelArr[nPos]->setBlindType(refBlindMetadata.getBlindType());
-	m_servoModelArr[nPos]->setBlindVisibility(refBlindMetadata.getBlindVisibility());
+	m_servoModelArr[nPos]->getBlindMetadataObject().blindType = refBlindMetadata.getBlindMetadataObject().blindType;
+	m_servoModelArr[nPos]->getBlindMetadataObject().visibility = refBlindMetadata.getBlindMetadataObject().visibility;
 	return true;
 }
 
@@ -297,10 +453,18 @@ bool CUartController::processBlindState(CBlindState &refBlindState)
 	return true;
 }
 
+bool CUartController::readCalibrateState(CBlindCalibrate &refBlindCalibrate)
+{
+	uint8_t nPos = refBlindCalibrate.getBlindNumber() - 1;
+	refBlindCalibrate.getCalibrateMetadataObject().m_nIsCalibrated = (m_servoModelArr[nPos]->getCalibrateMetadataObject().m_nIsCalibrated);
+	return true;
+}
+
 bool CUartController::processSetCalibrate(CBlindCalibrate &refBlindCalibrate)
 {
 	uint8_t nPos = refBlindCalibrate.getBlindNumber() - 1;
 	m_servoModelArr[nPos]->setCalibrateStep(refBlindCalibrate.getCalibrateStep());
 	return true;
 }
+
 

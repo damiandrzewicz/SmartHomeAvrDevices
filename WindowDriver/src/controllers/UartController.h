@@ -7,11 +7,14 @@
 
 #pragma once
 
+
 #include "TokenParser/TokenParser.h"
 
 #include "../ConnectorUartDataParser/ConnectorUartDataParser.h"
 #include "../servo/servo.h"
 #include "../WindowUartDataParser/WindowUartDataParser.h"
+
+
 
 class CUartController {
 public:
@@ -23,6 +26,10 @@ public:
 
 	void setServoModel1(CServoModel *state);
 	void setServoModel2(CServoModel *state);
+
+	void setConnectorAddress(const char *pAddress);
+	void initConnectorProcess();
+
 
 	void loopEvent();
 
@@ -37,9 +44,12 @@ protected:
 	bool readBlindState(CBlindState &refBlindState);
 	bool processBlindState(CBlindState &refBlindState);
 
+	bool readCalibrateState(CBlindCalibrate &refBlindCalibrate);
 	bool processSetCalibrate(CBlindCalibrate &refBlindCalibrate);
 
-	bool processModelMessage();
+	bool prepareMessage();
+	bool processModelMessage(bool &bFoundMessage);
+	bool processDeviceMessage(bool &bFoundMessage);
 
 private:
 	CTokenParser m_tokenParser;
@@ -60,5 +70,8 @@ private:
 	bool m_bProcessResponseStep = false;
 
 	CServoModel *m_servoModelArr[2];
+
+	bool m_bConnectorPowerUp = false;
+	bool m_bConnectorAddressSet = false;
 };
 

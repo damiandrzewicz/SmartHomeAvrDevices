@@ -5,7 +5,7 @@
  *      Author: Damian
  */
 
-
+#include <string.h>
 #include "uart.h"
 
 //CTerminal * terminal = reinterpret_cast<CTerminal *> (uart);
@@ -97,14 +97,15 @@ char * CUart::getStr(char * buf)
 	return wsk;
 }
 
-void CUart::RX_STR_EVENT(/*char * rbuf*/)
+void CUart::RX_STR_EVENT(char * rbuf)
 {
 	if(m_u8_asciiLine)
 	{
 		if(uart_rx_str_event_callback)
 		{
-			getStr(m_uartBuffer);
-			(*uart_rx_str_event_callback)(m_uartBuffer);
+			memset(rbuf, 0, sizeof(rbuf));
+			getStr(/*m_uartBuffer*/rbuf);
+			(*uart_rx_str_event_callback)(/*m_uartBuffer*/rbuf);
 		}
 		else
 		{

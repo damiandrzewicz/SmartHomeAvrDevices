@@ -15,10 +15,10 @@ class CConnectorUartDataParser : public CParserInterface  {
 public:
 	enum class OperationName{
 		SendDataToDevice,
-		SayHello, //Name and address
 		SetConnectorAddress,
 		GetConnectorAddress,
-		RestartConnector,
+		PowerUpConnector,
+		PowerDownConnector,
 		NotSupported
 	};
 
