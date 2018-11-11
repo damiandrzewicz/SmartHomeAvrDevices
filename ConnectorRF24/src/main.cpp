@@ -68,6 +68,8 @@ int main()
 	RF24 *radio = RF24::getInstance();
 	radio->registerCallback(nrfCallback);
 
+	//CUart::getInstance()->puts("gello");
+
 	/////////////////////////////////////////////
 	//Allow interrupts
 	/////////////////////////////////////////////

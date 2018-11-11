@@ -51,6 +51,7 @@ int main()
 	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 14);
 	timer2->Assign(0, 0, increaseMillis, true);
 
+	sei();
 
 	/*
 	 * *********************
@@ -85,13 +86,15 @@ int main()
 	servoController1.registerObjects(&servo1, &encoderForServo1);
 	servoController2.registerObjects(&servo2, &encoderForServo2);
 
+
+
 	/*
 	 * Servo models controller
 	 */
 	uartController.setServoModel1(servo1.getServoModel());
 	uartController.setServoModel2(servo2.getServoModel());
 
-	sei();
+
 
 	//uartController.setConnectorAddress(DEVICE_ADDRESS);
 

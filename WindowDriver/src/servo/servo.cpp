@@ -81,6 +81,7 @@ void CServo::processPercentOfOpen(uint8_t percent, WindowData::Visibility vis)
 {
 	m_servoModel.setOpenPercent(percent);
 	uint64_t temp = (percent / 100);
+	//if(m_servoModel.getBlindType() == WindowData::BlindType::FullBlackout)
 	if(m_servoModel.getBlindMetadataObject().blindType == WindowData::BlindType::FullBlackout)
 	{
 		m_setEncoderCounter = m_maxEncoderCounter * temp;

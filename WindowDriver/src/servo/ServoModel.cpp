@@ -7,6 +7,11 @@
 
 #include "ServoModel.h"
 
+#include "../uart/uart.h"
+
+TBlindMetadata EEMEM eem_blindMetadataArr[2];
+TBlindCalibrateMetadata EEMEM eem_blindCalibrateMetadata[2];
+
 /*********************/
 //CBlindTypeBase Class
 /*********************/
@@ -25,13 +30,47 @@ CBlindMetadata::~CBlindMetadata(){}
 void CBlindMetadata::setBlindMetadataObject(const TBlindMetadata &val){ m_metadata = val; }
 TBlindMetadata &CBlindMetadata::getBlindMetadataObject(){ return m_metadata; }
 
-//void CBlindMetadata::setBlindType(WindowData::BlindType blindType){ m_blindType = blindType; }
+//void CBlindMetadata::setBlindType(WindowData::BlindType blindType){ m_metadata.blindType = blindType; }
+//WindowData::BlindType CBlindMetadata::getBlindType()const { return m_metadata.blindType; }
+//
+//
+//void CBlindMetadata::setBlindVisibility(WindowData::Visibility val){ m_metadata.visibility = val; }
+//WindowData::Visibility CBlindMetadata::getBlindVisibility()const { return m_metadata.visibility; }
+//
+//void CBlindMetadata::setInitialized(bool val){ m_metadata.isMetadataInitialized = val; }
+//bool CBlindMetadata::isInitialized() const{ return m_metadata.isMetadataInitialized; }
+
+//void CBlindMetadata::setBlindType(WindowData::BlindType blindType)
+//{
+////	CUart::getInstance()->puts("Setter blindType: ");
+////	CUart::getInstance()->putint(static_cast<uint8_t>(blindType), 10);
+////	CUart::getInstance()->puts("\r\n");
+//	m_blindType = blindType;
+//}
 //WindowData::BlindType CBlindMetadata::getBlindType()const { return m_blindType; }
-//void CBlindMetadata::setInitialized(bool val){ m_bIsInitialized = val; }
+//
 //
 //void CBlindMetadata::setBlindVisibility(WindowData::Visibility val){ m_blindVisibility = val; }
 //WindowData::Visibility CBlindMetadata::getBlindVisibility()const { return m_blindVisibility; }
-//bool CBlindMetadata::isInitialized() const{ return m_bIsInitialized; }
+//
+//void CBlindMetadata::setInitialized(bool val){ m_nIsInitialized = val; }
+//bool CBlindMetadata::isInitialized() const{ return m_nIsInitialized; }
+
+//void CBlindMetadata::printData()
+//{
+//	CUart::getInstance()->puts("***printData***\r\n");
+//	CUart::getInstance()->puts("blindType: ");
+//	CUart::getInstance()->putint(static_cast<uint8_t>(getBlindType()), 10);
+//	CUart::getInstance()->puts("\r\n");
+//
+//	CUart::getInstance()->puts("visibility: ");
+//	CUart::getInstance()->putint(static_cast<uint8_t>(getBlindVisibility()), 10);
+//	CUart::getInstance()->puts("\r\n");
+//
+//	CUart::getInstance()->puts("isMetadataInitialized: ");
+//	CUart::getInstance()->putint(static_cast<uint8_t>(isInitialized()), 10);
+//	CUart::getInstance()->puts("\r\n");
+//}
 
 /*********************/
 //CBlindManualDrive Class
@@ -87,18 +126,36 @@ CServoModel::CServoModel(uint8_t nBlindNo)
 	  CBlindCalibrate(nBlindNo),
 	  CBlindManualDrive(nBlindNo)
 {
+	readBlindMetadataFromEeprom();
 }
 
 void CServoModel::writeBlindMetadataToEeprom()
 {
-	eeprom_write_block((const void*)&getBlindMetadataObject(), (void*)&eem_blindMetadataArr[getBlindNumber() - 1], sizeof(TBlindMetadata));
+	//CUart::getInstance()->puts("writeBlindMetadataToEeprom\r\n");
+	TBlindMetadata temp = getBlindMetadataObject();
+	eeprom_write_block(&temp, &eem_blindMetadataArr[getBlindNumber() - 1], sizeof(TBlindMetadata));
 }
 
 TBlindMetadata CServoModel::readBlindMetadataFromEeprom()
 {
 	TBlindMetadata temp;
-	eeprom_read_block((void*)&temp, (const void*)&eem_blindMetadataArr[getBlindNumber() - 1], sizeof(TBlindMetadata));
-	setBlindMetadataObject(temp);
+	eeprom_read_block(&temp, &eem_blindMetadataArr[getBlindNumber() - 1], sizeof(TBlindMetadata));
+
+//	CUart::getInstance()->puts("readBlindMetadataFromEeprom\r\n");
+//
+//	CUart::getInstance()->puts("blindNo:");
+//	CUart::getInstance()->putint(getBlindNumber(), 10);
+//	CUart::getInstance()->puts("r\n");
+//
+//	CUart::getInstance()->puts("isMetadataInitialized:");
+//	CUart::getInstance()->putint(temp.isMetadataInitialized, 10);
+//	CUart::getInstance()->puts("r\n");
+
+	if(temp.isMetadataInitialized)
+	{
+		setBlindMetadataObject(temp);
+	}
+
 	return temp;
 }
 
@@ -111,7 +168,7 @@ TBlindCalibrateMetadata CServoModel::readBlindCalibrateMetadataFromEeprom()
 {
 	TBlindCalibrateMetadata temp;
 	eeprom_read_block((void*)&temp, (const void*)&eem_blindCalibrateMetadata[getBlindNumber() - 1], sizeof(TBlindMetadata));
-	setCalibrateMetadataObject(temp);
+	//setCalibrateMetadataObject(temp);
 	return temp;
 }
 

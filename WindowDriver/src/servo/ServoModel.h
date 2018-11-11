@@ -48,19 +48,23 @@ public:
 	CBlindMetadata(uint8_t nBlindNo = 0);
     virtual ~CBlindMetadata();
 
-    //virtual void setBlindType(WindowData::BlindType blindNo);
-    //virtual void setBlindVisibility(WindowData::Visibility val);
-    //void setInitialized(bool val);
     void setBlindMetadataObject(const TBlindMetadata &val);
+//    virtual void setBlindType(WindowData::BlindType blindNo);
+//    virtual void setBlindVisibility(WindowData::Visibility val);
+//    void setInitialized(bool val);
 
-    //WindowData::BlindType getBlindType()const;
-    //WindowData::Visibility getBlindVisibility()const;
-    //bool isInitialized() const;
     TBlindMetadata &getBlindMetadataObject();
+//    WindowData::BlindType getBlindType()const;
+//    WindowData::Visibility getBlindVisibility()const;
+//    bool isInitialized() const;
+
+    //void printData();
+
 
 private:
 	//WindowData::BlindType m_blindType = WindowData::BlindType::None;
 	//WindowData::Visibility m_blindVisibility = WindowData::Visibility::None;
+	//bool m_nIsInitialized = false;
     TBlindMetadata m_metadata;
 };
 
@@ -121,8 +125,7 @@ private:
    TBlindCalibrateMetadata m_calibrateMetadata;
 };
 
-static TBlindMetadata EEMEM eem_blindMetadataArr[2];
-static TBlindCalibrateMetadata EEMEM eem_blindCalibrateMetadata[2];
+
 
 class CServoModel : public CBlindMetadata, public CBlindState, public CBlindCalibrate, public CBlindManualDrive
 {

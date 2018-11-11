@@ -179,19 +179,23 @@ bool CWindowUartDataParser::parseSetBlindMetadata(CBlindMetadata &refBlindMetada
 
 	//CUart::getInstance()->putint(refBlindMetadata.getBlindNumber(), 10);
 
+	//CUart::getInstance()->puts("here");
+
 	//Get blind type
 	char *cTemp = m_pTokenParser->getNextToken();
 	//CUart::getInstance()->puts(cTemp);
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
+	//refBlindMetadata.setBlindType(static_cast<WindowData::BlindType>(atoi(cTemp)));
 	refBlindMetadata.getBlindMetadataObject().blindType = static_cast<WindowData::BlindType>(atoi(cTemp));
+
 
 	//Get blind visibility
 	cTemp = m_pTokenParser->getNextToken();
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
+	//refBlindMetadata.setBlindVisibility(static_cast<WindowData::Visibility>(atoi(cTemp)));
 	refBlindMetadata.getBlindMetadataObject().visibility = static_cast<WindowData::Visibility>(atoi(cTemp));
-
 
 	return true;
 }
@@ -272,19 +276,29 @@ bool CWindowUartDataParser::createGetBlindMetadataContext(CBlindMetadata &refBli
 	if(pResult == nullptr)
 		return false;
 
-	char cTemp[3];
+	char cTemp[5];
+	//itoa(static_cast<uint8_t>(refBlindMetadata.getBlindType()), cTemp, 10);
 	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().blindType), cTemp, 10);
 	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
+
+//	CUart::getInstance()->puts(pResult);
+//	CUart::getInstance()->puts("[1]\r\n");
 
 	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().visibility), cTemp, 10);
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
+//	CUart::getInstance()->puts(pResult);
+//	CUart::getInstance()->puts("[2]\r\n");
+
 	//Isinitialized
 	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().isMetadataInitialized), cTemp, 10);
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
+
+//	CUart::getInstance()->puts(pResult);
+//	CUart::getInstance()->puts("[3]\r\n");
 
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	return true;

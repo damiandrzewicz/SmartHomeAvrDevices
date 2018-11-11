@@ -47,9 +47,11 @@ protected:
 	bool readCalibrateState(CBlindCalibrate &refBlindCalibrate);
 	bool processSetCalibrate(CBlindCalibrate &refBlindCalibrate);
 
-	bool prepareMessage();
-	bool processModelMessage(bool &bFoundMessage);
-	bool processDeviceMessage(bool &bFoundMessage);
+	bool processMessage();
+
+	//bool prepareMessage();
+	//bool processModelMessage(bool &bFoundMessage);
+	//bool processDeviceMessage(bool &bFoundMessage);
 
 private:
 	CTokenParser m_tokenParser;
