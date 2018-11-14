@@ -56,6 +56,8 @@ protected:
 	bool m_bTimeout = false;
 	unsigned long m_lTime = 0;
 	uint16_t m_nTimeoutValue = 300;		//300 ms
+
+	bool m_bConnectorStarted = false;
 };
 
 

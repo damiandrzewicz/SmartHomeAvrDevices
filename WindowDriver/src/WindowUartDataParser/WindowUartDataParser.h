@@ -33,7 +33,7 @@ public:
 
 	enum class WindowError
 	{
-		BlindBlocked = Error::END_OF_ERROR
+		BlindBlocked = Error::END_OF_ERROR,
 	};
 
 	CWindowUartDataParser();

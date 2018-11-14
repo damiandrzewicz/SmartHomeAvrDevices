@@ -123,8 +123,8 @@ void CUartController::loopEvent()
 			{
 				if(bResponse)
 				{
-					m_bConnectorPowerUp = false;
-					m_bConnectorAddressSet = false;
+					//m_bConnectorPowerUp = false;
+					//m_bConnectorAddressSet = false;
 				}
 			}
 			else if(operationName == CConnectorUartDataParser::OperationName::SetConnectorAddress)
@@ -157,7 +157,7 @@ void CUartController::setConnectorAddress(const char *pAddress)
 
 void CUartController::initConnectorProcess()
 {
-	if(!m_bConnectorPowerUp)
+	if(m_initStep == 0)
 	{
 		m_connectorUartParser.createMessage(
 							CConnectorUartDataParser::OperationName::PowerUpConnector,
@@ -165,7 +165,21 @@ void CUartController::initConnectorProcess()
 							m_connectorUartParser.getAdditionalText(CParserInterface::AdditionalTexts::EmptyContext),
 							m_cUartMessage);
 		CUart::getInstance()->puts(m_cUartMessage);
-		m_bConnectorPowerUp = true;
+		m_initStep = 1;
+	}
+	if( (m_initStep == 1) && m_bConnectorPowerUp)
+	{
+		m_connectorUartParser.createMessage(
+							CConnectorUartDataParser::OperationName::SetConnectorAddress,
+							CConnectorUartDataParser::OperationDirection::Request,
+							DEVICE_ADDRESS,
+							m_cUartMessage);
+		CUart::getInstance()->puts(m_cUartMessage);
+		m_initStep = 2;
+	}
+	if( (m_initStep == 2) && m_bConnectorAddressSet )
+	{
+		m_initStep = -1;
 	}
 }
 
@@ -469,7 +483,7 @@ bool CUartController::readBlindMetadata(CBlindMetadata &refBlindMetadata)
 
 	refBlindMetadata.getBlindMetadataObject().blindType = m_servoModelArr[nPos]->getBlindMetadataObject().blindType;
 	refBlindMetadata.getBlindMetadataObject().visibility = m_servoModelArr[nPos]->getBlindMetadataObject().visibility;
-	refBlindMetadata.getBlindMetadataObject().isMetadataInitialized = m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized;
+	//refBlindMetadata.getBlindMetadataObject().isMetadataInitialized = m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized;
 
 	//m_servoModelArr[nPos]->printData();
 
@@ -486,7 +500,7 @@ bool CUartController::processBlindMetadata(CBlindMetadata &refBlindMetadata)
 
 	m_servoModelArr[nPos]->getBlindMetadataObject().blindType = refBlindMetadata.getBlindMetadataObject().blindType;
 	m_servoModelArr[nPos]->getBlindMetadataObject().visibility = refBlindMetadata.getBlindMetadataObject().visibility;
-	m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized = true;
+	//m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized = true;
 
 	m_servoModelArr[nPos]->writeBlindMetadataToEeprom();
 	//m_servoModelArr[nPos]->readBlindMetadataFromEeprom();

@@ -75,5 +75,6 @@ private:
 
 	bool m_bConnectorPowerUp = false;
 	bool m_bConnectorAddressSet = false;
+	int8_t m_initStep = 0;
 };
 

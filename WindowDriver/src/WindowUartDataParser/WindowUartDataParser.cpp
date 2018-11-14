@@ -293,9 +293,10 @@ bool CWindowUartDataParser::createGetBlindMetadataContext(CBlindMetadata &refBli
 //	CUart::getInstance()->puts("[2]\r\n");
 
 	//Isinitialized
-	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().isMetadataInitialized), cTemp, 10);
-	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
-	strcat(pResult, cTemp);
+//	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().isMetadataInitialized), cTemp, 10);
+//	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+//	strcat(pResult, cTemp);
+
 
 //	CUart::getInstance()->puts(pResult);
 //	CUart::getInstance()->puts("[3]\r\n");

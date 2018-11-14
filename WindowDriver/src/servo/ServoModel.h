@@ -37,7 +37,7 @@ private:
 
 struct TBlindMetadata
 {
-	bool isMetadataInitialized = false;
+	//bool isMetadataInitialized = false;
 	WindowData::BlindType blindType = WindowData::BlindType::None;
 	WindowData::Visibility visibility = WindowData::Visibility::None;
 };

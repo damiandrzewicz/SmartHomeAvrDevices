@@ -151,7 +151,7 @@ TBlindMetadata CServoModel::readBlindMetadataFromEeprom()
 //	CUart::getInstance()->putint(temp.isMetadataInitialized, 10);
 //	CUart::getInstance()->puts("r\n");
 
-	if(temp.isMetadataInitialized)
+	if(temp.blindType != WindowData::BlindType::None)
 	{
 		setBlindMetadataObject(temp);
 	}
@@ -171,5 +171,4 @@ TBlindCalibrateMetadata CServoModel::readBlindCalibrateMetadataFromEeprom()
 	//setCalibrateMetadataObject(temp);
 	return temp;
 }
-
 

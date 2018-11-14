@@ -37,11 +37,11 @@ void CTerminalController::eventLoop()
 			if(m_uartOperationName == CUartDataParser::OperationName::SendDataToDevice)
 			{
 				RF24::getInstance()->sendDataToAir(m_cMessage);
+				m_bWaitingForResponse = true;
+
 				//CUart::getInstance()->puts("sending uart:");
 				//CUart::getInstance()->puts(m_cMessage);
 				//CUart::getInstance()->puts("\r\n");
-
-				m_bWaitingForResponse = true;
 			}
 			else
 			{

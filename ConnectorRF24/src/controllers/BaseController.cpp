@@ -95,11 +95,22 @@ bool CBaseController::parseUartMessageWrapper(
 	}
 	else if(operationName == CUartDataParser::OperationName::SendDataToDevice)
 	{
-		m_radioParser.createMessage(
-				CRadioDataParser::OperationName::PassDataByAir,
-				radioDir,
-				m_uartParser.getContext(),
-				m_cMessage);
+		if(m_bConnectorStarted)
+		{
+			m_radioParser.createMessage(
+					CRadioDataParser::OperationName::PassDataByAir,
+					radioDir,
+					m_uartParser.getContext(),
+					m_cMessage);
+		}
+		else
+		{
+			m_uartParser.createErrorMsg(
+					static_cast<uint8_t>(CUartDataParser::ConnectorError::ConnectorNotStarted), m_cMessage);
+			//CUart::getInstance()->puts(m_cMessage);
+			//m_bUartDataReady = false;
+			return false;
+		}
 	}
 	else if(operationName == CUartDataParser::OperationName::PowerUpConnector)
 	{
@@ -110,6 +121,7 @@ bool CBaseController::parseUartMessageWrapper(
 				CUartDataParser::OperationDirection::Response,
 				m_uartParser.getAdditionalText(CUartDataParser::AdditionalTexts::OkResponse),
 				m_cMessage);
+		m_bConnectorStarted = true;
 	}
 	else if(operationName == CUartDataParser::OperationName::PowerDownConnector)
 	{
@@ -119,6 +131,7 @@ bool CBaseController::parseUartMessageWrapper(
 				CUartDataParser::OperationDirection::Response,
 				m_uartParser.getAdditionalText(CUartDataParser::AdditionalTexts::OkResponse),
 				m_cMessage);
+		m_bConnectorStarted = false;
 	}
 	else if(operationName == CUartDataParser::OperationName::NotSupported)
 	{

@@ -24,6 +24,11 @@ public:
 		NotSupported
 	};
 
+	enum class ConnectorError
+	{
+		ConnectorNotStarted = Error::END_OF_ERROR
+	};
+
 	CUartDataParser();
 	virtual ~CUartDataParser();
 

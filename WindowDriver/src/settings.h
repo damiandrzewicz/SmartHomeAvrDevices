@@ -8,8 +8,8 @@
 #ifndef SETTINGS_H_
 #define SETTINGS_H_
 
-#define DEVICE_ADDRESS "0001"
-#define DEVICE_NAME "WindowDriver"
+#define DEVICE_ADDRESS "0101"
+#define DEVICE_NAME "WindowDevice"
 #define BLIND_QUANTITY 2
 
 

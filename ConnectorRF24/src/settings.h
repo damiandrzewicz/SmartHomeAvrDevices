@@ -13,7 +13,7 @@
  * 1 - Connector mode
  * 2 - Standalone device mode
  */
-#define NRF_MODE 1
+#define NRF_MODE 0
 
 #define DEVICE_NAME "ConnectorRF24"
 
