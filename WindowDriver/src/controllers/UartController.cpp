@@ -498,11 +498,21 @@ bool CUartController::processBlindMetadata(CBlindMetadata &refBlindMetadata)
 //	m_servoModelArr[nPos]->setBlindVisibility(refBlindMetadata.getBlindVisibility());
 //	m_servoModelArr[nPos]->setInitialized(true);
 
+	bool bSaveMetadataInEeprom = false;
+	if(m_servoModelArr[nPos]->getBlindMetadataObject().blindType != refBlindMetadata.getBlindMetadataObject().blindType)
+	{
+		bSaveMetadataInEeprom = true;
+	}
+
 	m_servoModelArr[nPos]->getBlindMetadataObject().blindType = refBlindMetadata.getBlindMetadataObject().blindType;
 	m_servoModelArr[nPos]->getBlindMetadataObject().visibility = refBlindMetadata.getBlindMetadataObject().visibility;
 	//m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized = true;
 
-	m_servoModelArr[nPos]->writeBlindMetadataToEeprom();
+	if(bSaveMetadataInEeprom)
+	{
+		m_servoModelArr[nPos]->writeBlindMetadataToEeprom();
+	}
+
 	//m_servoModelArr[nPos]->readBlindMetadataFromEeprom();
 	return true;
 }
@@ -534,7 +544,7 @@ bool CUartController::processBlindState(CBlindState &refBlindState)
 bool CUartController::readCalibrateState(CBlindCalibrate &refBlindCalibrate)
 {
 	uint8_t nPos = refBlindCalibrate.getBlindNumber() - 1;
-	refBlindCalibrate.getCalibrateMetadataObject().m_nIsCalibrated = (m_servoModelArr[nPos]->getCalibrateMetadataObject().m_nIsCalibrated);
+	refBlindCalibrate.getCalibrateMetadataObject().bIsCalibrated = (m_servoModelArr[nPos]->getCalibrateMetadataObject().bIsCalibrated);
 	return true;
 }
 

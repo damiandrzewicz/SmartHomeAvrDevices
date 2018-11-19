@@ -7,6 +7,7 @@
 
 
 #include "uart.h"
+#include "../utils/utils.h"
 
 //CTerminal * terminal = reinterpret_cast<CTerminal *> (uart);
 
@@ -156,6 +157,14 @@ void CUart::putint(int value, int radix)
 	char string[17];
 	itoa(value, string, radix);
 	puts(string);
+}
+
+
+void CUart::putll(long long int value, int radix)
+{
+	//char string[25];
+	//lltoa(value,  radix);
+	puts(lltoa(value,  radix));
 }
 
 int CUart::getc(void)

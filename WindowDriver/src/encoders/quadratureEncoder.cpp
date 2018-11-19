@@ -23,7 +23,7 @@
 //Create global variable for encoder 1
 CQuadratureEncoder encoderForServo1({
 	(1 << INT0),
-	(1 << ISC00),
+	(1 << ISC00) | (1 << ISC01),
 	{	&DDRD,
 		&PORTD,
 		&PIND,
@@ -32,7 +32,7 @@ CQuadratureEncoder encoderForServo1({
 	{	&DDRD,
 		&PORTD,
 		&PIND,
-		PD6
+		PD0
 	}
 });
 
@@ -48,7 +48,7 @@ CQuadratureEncoder encoderForServo2({
 	{	&DDRD,
 		&PORTD,
 		&PIND,
-		PD7
+		PD1
 	}
 });
 
@@ -80,65 +80,38 @@ CQuadratureEncoder::~CQuadratureEncoder() {
 
 void CQuadratureEncoder::processGrayCode()
 {
-	PORTB ^= (1 << PB7);
-	if(IO::Pin::isSet(m_pin1.pinX, m_pin1.pin))
-	//if(bit_is_set(m_pinX1, PD2))
+	//PORTB ^= (1 << PB7);
+
+	if(IO::Pin::isSet(m_pin2.pinX, m_pin2.pin))
 	{
-		//Rising edge
-		if(!IO::Pin::isSet(m_pin2.pinX, m_pin2.pin))
-		//if(!bit_is_set(PIND, PD4))
-		{
-			//CW
-			m_counter++;
-		}
-		else
-		{
-			//CCW
-			m_counter--;
-		}
+		//PORTB ^= (1 << PB5);
+		m_counter++;
 	}
 	else
 	{
-		//Falling edge
-		//Rising edge
-		if(IO::Pin::isSet(m_pin2.pinX, m_pin2.pin))
-		//if(bit_is_set(PIND, PD4))
-		{
-			//CW
-			m_counter++;
-		}
-		else
-		{
-			//CCW
-			m_counter--;
-		}
+		//PORTB ^= (1 << PB5);
+		m_counter--;
 	}
 }
 
-uint64_t CQuadratureEncoder::getCounter()
+int32_t CQuadratureEncoder::getCounter()
 {
 	return m_counter;
 }
 
+void CQuadratureEncoder::resetCounter()
+{
+	m_counter = 0;
+}
+
 void INT0_vect(void)
 {
-	//PORTB ^= (1 << PB7);
-	static uint8_t counter = CQuadratureEncoder::m_sPulsesToIgnore;
-	if(!counter--)
-	{
-		encoderForServo1.processGrayCode();
-		counter = CQuadratureEncoder::m_sPulsesToIgnore;
-	}
+	encoderForServo1.processGrayCode();
 }
 
 void INT1_vect(void)
 {
-	static uint8_t counter = CQuadratureEncoder::m_sPulsesToIgnore;
-	if(!counter--)
-	{
-		encoderForServo2.processGrayCode();
-		counter = CQuadratureEncoder::m_sPulsesToIgnore;
-	}
+	encoderForServo2.processGrayCode();
 }
 
 

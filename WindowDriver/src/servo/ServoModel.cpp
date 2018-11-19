@@ -109,10 +109,10 @@ bool CBlindState::isWindowClosed()const { return m_bIsWindowClosed; }
 CBlindCalibrate::CBlindCalibrate(uint8_t nBlindNo) : CBlindBase(nBlindNo){}
 CBlindCalibrate::~CBlindCalibrate(){}
 
-void CBlindCalibrate::setCalibrateStep(uint8_t val){ m_nCalibrateStep = val; }
+void CBlindCalibrate::setCalibrateStep(CBlindCalibrate::CalibrationStep val){ m_nCalibrateStep = val; }
 void CBlindCalibrate::setCalibrateMetadataObject(const TBlindCalibrateMetadata &val){ m_calibrateMetadata = val; }
 
-uint8_t CBlindCalibrate::getCalibrateStep()const { return m_nCalibrateStep; }
+CBlindCalibrate::CalibrationStep CBlindCalibrate::getCalibrateStep()const { return m_nCalibrateStep; }
 TBlindCalibrateMetadata &CBlindCalibrate::getCalibrateMetadataObject(){ return m_calibrateMetadata; }
 
 /*********************/
@@ -168,7 +168,11 @@ TBlindCalibrateMetadata CServoModel::readBlindCalibrateMetadataFromEeprom()
 {
 	TBlindCalibrateMetadata temp;
 	eeprom_read_block((void*)&temp, (const void*)&eem_blindCalibrateMetadata[getBlindNumber() - 1], sizeof(TBlindMetadata));
-	//setCalibrateMetadataObject(temp);
+	if(temp.bIsCalibrated)
+	{
+		setCalibrateMetadataObject(temp);
+	}
+
 	return temp;
 }
 

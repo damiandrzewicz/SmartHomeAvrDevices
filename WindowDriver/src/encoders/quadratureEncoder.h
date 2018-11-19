@@ -32,19 +32,24 @@ public:
 	CQuadratureEncoder(EncoderSettings settings);
 	~CQuadratureEncoder();
 
-	void processGrayCode();
-	uint64_t getCounter();
+	int32_t getCounter();
+	void resetCounter();
 
 	friend void INT0_vect (void);
 	friend void INT1_vect (void);
+
+private:
+	void processGrayCode();
 
 	//Members
 private:
 	IO::PinData m_pin1;
 	IO::PinData m_pin2;
 
-	static const uint8_t m_sPulsesToIgnore = 10;
-	volatile int64_t m_counter = 0;
+	//static const uint8_t m_sPulsesToIgnore = 10;
+
+public:
+	volatile int32_t m_counter = 0;
 };
 
 #endif /* SRC_QUADRATUREENCODERS_H_ */

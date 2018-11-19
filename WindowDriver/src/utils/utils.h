@@ -12,5 +12,7 @@ unsigned long millis();
 
 void increaseMillis();
 
+char* lltoa(long long val, int base);
+
 
 #endif /* UTILS_UTILS_H_ */

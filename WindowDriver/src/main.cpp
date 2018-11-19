@@ -35,6 +35,12 @@ CUartController uartController;
 void uartCallback(char *data);
 void timerCallback();
 
+bool s = false;
+void flag()
+{
+	s = true;
+}
+
 
 int main()
 {
@@ -51,6 +57,8 @@ int main()
 	CTimer2 *timer2 = CTimer2::getInstance(CTimer2::T2Prescallers::PS_1024, 14);
 	timer2->Assign(0, 0, increaseMillis, true);
 
+	timer2->Assign(1, 500, flag, true);
+
 	sei();
 
 	/*
@@ -62,6 +70,9 @@ int main()
 	ServoData servoData1;
 	servoData1.pinM1 = { &DDRC, &PORTC, &PINC, PC0, };
 	servoData1.pinM2 = { &DDRC, &PORTC, &PINC, PC1, };
+	servoData1.pinADC = { &DDRA, &PORTA, &PINA, PA0, };
+	servoData1.adcMaxCurrent = 300;			//mA
+	servoData1.adcResistorValue = 1100;		//mOhm
 	servoData1.enablePwmFunPtr = &CTimer1::setChannelA;
 	servoData1.timer1Obj = timer1;
 
@@ -69,30 +80,36 @@ int main()
 	ServoData servoData2;
 	servoData2.pinM1 = { &DDRC, &PORTC, &PINC, PC2, };
 	servoData2.pinM2 = { &DDRC, &PORTC, &PINC, PC3, };
+	servoData2.pinADC = { &DDRA, &PORTA, &PINA, PA1, };
+	servoData2.adcMaxCurrent = 300;			//mA
+	servoData1.adcResistorValue = 1100;		//mOhm
 	servoData2.enablePwmFunPtr = &CTimer1::setChannelB;
 	servoData2.timer1Obj = timer1;
+
+	//Servo models
+	CServoModel servoModel_1(1);
+	CServoModel servoModel_2(2);
 
 	/*
 	 * **********
 	 * CServo
 	 * **********
 	 */
-	CServo servo1(servoData1, 1);	//CreateServo1 object
-	CServo servo2(servoData2, 2);	//CreateServo2 object
+	//CServo servo1(servoData1, 1);	//CreateServo1 object
+	//CServo servo2(servoData2, 2);	//CreateServo2 object
 
 	/*
 	 * Servo controllers
 	 */
-	servoController1.registerObjects(&servo1, &encoderForServo1);
-	servoController2.registerObjects(&servo2, &encoderForServo2);
-
+	servoController1.registerObjects(&servoData1, &encoderForServo1, &servoModel_1);
+	servoController2.registerObjects(&servoData2, &encoderForServo2, &servoModel_2);
 
 
 	/*
 	 * Servo models controller
 	 */
-	uartController.setServoModel1(servo1.getServoModel());
-	uartController.setServoModel2(servo2.getServoModel());
+	//uartController.setServoModel1(servo1.getServoModel());
+	//uartController.setServoModel2(servo2.getServoModel());
 
 
 
@@ -112,8 +129,14 @@ int main()
 	DDRB |= (1 << PB7);
 	PORTB &= ~(1 << PB7);
 
+	DDRB |= (1 << PB5);
+	PORTB &= ~(1 << PB5);
+
 	//CUart::getInstance()->puts("Hello123!");			//Send response by UART
 	//CUart::getInstance()->puts("\n\r");				//Terminate response
+
+	//DDRD &= ~(1 << PD0);
+	//PORTD |= (1 << PD0);
 
 
 	while(1)
@@ -131,6 +154,18 @@ int main()
 		//Servo events
 		servoController1.event();
 		//servoController1.event();
+
+//		if( !(PIND & (1 << PD0)) )
+//		{
+//			PORTB ^= (1 << PB5);
+//		}
+
+		if(s)
+		{
+			CUart::getInstance()->putll(encoderForServo1.getCounter(), 10);
+			CUart::getInstance()->puts("\r\n");
+			s = false;
+		}
 
 	}
 }

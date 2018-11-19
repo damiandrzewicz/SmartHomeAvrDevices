@@ -258,7 +258,7 @@ bool CWindowUartDataParser::parseSetCalibrate(CBlindCalibrate &refBlindCalibrate
 	char *cTemp = m_pTokenParser->getNextToken();
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
-	refBlindCalibrate.setCalibrateStep( static_cast<uint8_t>(atoi(m_pTokenParser->getNextToken())));
+	refBlindCalibrate.setCalibrateStep( static_cast<CBlindCalibrate::CalibrationStep>(atoi(cTemp)));
 
 	return true;
 }
@@ -339,7 +339,7 @@ bool CWindowUartDataParser::createGetBlindCalibrateContext(CBlindCalibrate &refB
 	char cTemp[4];
 
 	//IsCalibrated
-	itoa(static_cast<uint8_t>(refBlindCalibrate.getCalibrateMetadataObject().m_nIsCalibrated), cTemp, 10);
+	itoa(static_cast<uint8_t>(refBlindCalibrate.getCalibrateMetadataObject().bIsCalibrated), cTemp, 10);
 	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 

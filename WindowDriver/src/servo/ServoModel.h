@@ -105,23 +105,38 @@ private:
 
 struct TBlindCalibrateMetadata
 {
-	uint8_t m_nIsCalibrated = false;
+	bool bIsCalibrated = false;
+	int32_t maxEncoderCounter = 0;
+	uint16_t singleEncoderStep = 0;
+	uint16_t offsetEncoder = 0;
 };
 
 class CBlindCalibrate : virtual public CBlindBase
 {
 public:
+
+	enum class CalibrationStep
+	{
+		Idle,
+		ActivateCalibration,
+		StartPoint,
+		EndPoint,
+		EndPointFull,
+		Offset,
+		Finished
+	};
+
    CBlindCalibrate(uint8_t nBlindNo = 0);
    virtual ~CBlindCalibrate();
 
-   virtual void setCalibrateStep(uint8_t val);
+   virtual void setCalibrateStep(CalibrationStep val);
    void setCalibrateMetadataObject(const TBlindCalibrateMetadata &val);
 
-   uint8_t getCalibrateStep()const;
+   CalibrationStep getCalibrateStep()const;
    TBlindCalibrateMetadata &getCalibrateMetadataObject();
 
 private:
-   uint8_t m_nCalibrateStep = 0;
+   CalibrationStep m_nCalibrateStep = CalibrationStep::Idle;
    TBlindCalibrateMetadata m_calibrateMetadata;
 };
 

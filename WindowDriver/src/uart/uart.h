@@ -50,6 +50,7 @@ public:
 	void putc(const char data );
 	void puts(const char *s);
 	void putint(int value, int radix);
+	void putll(long long int value, int radix);
 	void puts_P(const char *s);
 	char * getStr(char * buf);
 	void RX_STR_EVENT(/*char * rbuf*/);
