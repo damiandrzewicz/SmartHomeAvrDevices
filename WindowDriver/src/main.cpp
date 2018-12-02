@@ -33,7 +33,7 @@ CServoController servoController2;
 CUartController uartController;
 
 void uartCallback(char *data);
-void timerCallback();
+//void timerCallback();
 
 bool s = false;
 void flag()
@@ -71,12 +71,14 @@ int main()
 	servoData1.pinM1 = { &DDRC, &PORTC, &PINC, PC0, };
 	servoData1.pinM2 = { &DDRC, &PORTC, &PINC, PC1, };
 	servoData1.pinADC = { &DDRA, &PORTA, &PINA, PA0, };
-	servoData1.adcMaxCurrent = 300;			//mA
-	servoData1.adcResistorValue = 1100;		//mOhm
+	servoData1.adcMaxCurrent = 380;			//mA
+	servoData1.adcResistorValue = 470;		//mOhm
 	servoData1.enablePwmFunPtr = &CTimer1::setChannelA;
 	servoData1.timer1Obj = timer1;
 
-	//Prepare servo2 data
+	//timer1->setChannelA(255);
+//
+//	//Prepare servo2 data
 	ServoData servoData2;
 	servoData2.pinM1 = { &DDRC, &PORTC, &PINC, PC2, };
 	servoData2.pinM2 = { &DDRC, &PORTC, &PINC, PC3, };
@@ -86,7 +88,9 @@ int main()
 	servoData2.enablePwmFunPtr = &CTimer1::setChannelB;
 	servoData2.timer1Obj = timer1;
 
-	//Servo models
+	//timer1->setChannelB(100);
+//
+//	//Servo models
 	CServoModel servoModel_1(1);
 	CServoModel servoModel_2(2);
 
@@ -108,15 +112,15 @@ int main()
 	/*
 	 * Servo models controller
 	 */
-	//uartController.setServoModel1(servo1.getServoModel());
-	//uartController.setServoModel2(servo2.getServoModel());
+	uartController.setServoModel1(&servoModel_1);
+	uartController.setServoModel2(&servoModel_2);
 
 
 
 	//uartController.setConnectorAddress(DEVICE_ADDRESS);
 
-	DDRC |= (1 << PC0);
-	DDRC |= (1 << PC1);
+	//DDRC |= (1 << PC0);
+	//DDRC |= (1 << PC1);
 
 	//PORTC |= (1 << PC0);
 	//PORTC &= ~(1 << PC1);
@@ -138,6 +142,7 @@ int main()
 	//DDRD &= ~(1 << PD0);
 	//PORTD |= (1 << PD0);
 
+	servoController1.startGointToInitPosition();
 
 	while(1)
 	{
@@ -155,15 +160,27 @@ int main()
 		servoController1.event();
 		//servoController1.event();
 
+//		if(!s && servoModel_1.getManualDriveDirection() != WindowData::Direction::Stop)
+//		{
+//			CUart::getInstance()->puts("changed=");
+//			s=true;
+//		}
+
 //		if( !(PIND & (1 << PD0)) )
 //		{
 //			PORTB ^= (1 << PB5);
 //		}
-
+//
 		if(s)
 		{
+			CUart::getInstance()->puts("enc=");
 			CUart::getInstance()->putll(encoderForServo1.getCounter(), 10);
 			CUart::getInstance()->puts("\r\n");
+
+			//CUart::getInstance()->puts("curr=");
+			//CUart::getInstance()->putll(servoController1.current, 10);
+			//CUart::getInstance()->puts("\r\n");
+
 			s = false;
 		}
 
@@ -172,9 +189,9 @@ int main()
 
 void uartCallback(char *data)
 {
-	//CUart::getInstance()->puts("Received Uart:");
-	//CUart::getInstance()->puts(data);
-	//CUart::getInstance()->puts("\r\n");
+//	CUart::getInstance()->puts("Received Uart:");
+//	CUart::getInstance()->puts(data);
+//	CUart::getInstance()->puts("\r\n");
 	uartController.uartDataReady(data);
 }
 

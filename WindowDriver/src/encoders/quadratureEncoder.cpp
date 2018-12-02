@@ -32,7 +32,7 @@ CQuadratureEncoder encoderForServo1({
 	{	&DDRD,
 		&PORTD,
 		&PIND,
-		PD0
+		PD6
 	}
 });
 
@@ -48,7 +48,7 @@ CQuadratureEncoder encoderForServo2({
 	{	&DDRD,
 		&PORTD,
 		&PIND,
-		PD1
+		PD7
 	}
 });
 
@@ -82,6 +82,9 @@ void CQuadratureEncoder::processGrayCode()
 {
 	//PORTB ^= (1 << PB7);
 
+	if(m_resolution++ % 4 != 0)
+		return;
+
 	if(IO::Pin::isSet(m_pin2.pinX, m_pin2.pin))
 	{
 		//PORTB ^= (1 << PB5);
@@ -94,9 +97,19 @@ void CQuadratureEncoder::processGrayCode()
 	}
 }
 
-int32_t CQuadratureEncoder::getCounter()
+void CQuadratureEncoder::setCounter(int32_t value)
 {
-	return m_counter;
+	m_counter = value;
+}
+
+int32_t CQuadratureEncoder::getCounter(bool bInvertedValue)
+{
+	if(!bInvertedValue)
+		return m_counter;
+	else
+	{
+		return -(m_counter);
+	}
 }
 
 void CQuadratureEncoder::resetCounter()

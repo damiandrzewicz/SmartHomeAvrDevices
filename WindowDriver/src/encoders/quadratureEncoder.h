@@ -32,7 +32,8 @@ public:
 	CQuadratureEncoder(EncoderSettings settings);
 	~CQuadratureEncoder();
 
-	int32_t getCounter();
+	void setCounter(int32_t value);
+	int32_t getCounter(bool bInvertedValue = false);
 	void resetCounter();
 
 	friend void INT0_vect (void);
@@ -49,7 +50,8 @@ private:
 	//static const uint8_t m_sPulsesToIgnore = 10;
 
 public:
-	volatile int32_t m_counter = 0;
+	volatile int16_t m_counter = 0;
+	uint8_t m_resolution = 0;
 };
 
 #endif /* SRC_QUADRATUREENCODERS_H_ */

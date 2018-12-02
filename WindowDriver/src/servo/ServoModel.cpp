@@ -18,6 +18,8 @@ TBlindCalibrateMetadata EEMEM eem_blindCalibrateMetadata[2];
 CBlindBase::CBlindBase(uint8_t nBlindNo) { m_nBlindNo = nBlindNo; }
 CBlindBase::~CBlindBase(){}
 
+void CBlindBase::setBlindNumber(uint8_t val){ m_nBlindNo = val; }
+
 uint8_t &CBlindBase::getBlindNumber(){ return m_nBlindNo; }
 uint8_t CBlindBase::getBlindNumber()const { return m_nBlindNo; }
 
@@ -78,8 +80,9 @@ TBlindMetadata &CBlindMetadata::getBlindMetadataObject(){ return m_metadata; }
 CBlindManualDrive::CBlindManualDrive(uint8_t nBlindNo) : CBlindBase(nBlindNo){}
 CBlindManualDrive::~CBlindManualDrive(){}
 
-void CBlindManualDrive::setManualDriveDirection(WindowData::Direction dir){ m_manualDirection = dir; }
-WindowData::Direction CBlindManualDrive::getManualDriveDirection()const{ return m_manualDirection; }
+void CBlindManualDrive::setManualDriveDirection(WindowData::Direction dir){ m_manualDirection.setValue(dir);  }
+CNotofiedValue<WindowData::Direction> CBlindManualDrive::getManualDriveDirection()const{ return m_manualDirection; }
+CNotofiedValue<WindowData::Direction> &CBlindManualDrive::getManualDriveDirection(){ return m_manualDirection; }
 
 /*********************/
 //CBlindState Class
@@ -91,7 +94,7 @@ CBlindState::~CBlindState(){}
 //Setters
 bool CBlindState::setOpenPercent(uint8_t val){
 	if(val > 100) return false;
-	m_nOpenPercent = val;    return true; }
+	m_nOpenPercent.setValue(val);    return true; }
 bool CBlindState::setOpenSpeed(uint8_t val){
 	if(val > 100) return false;
 	m_nOpenSpeed = val; return true; }
@@ -99,7 +102,8 @@ bool CBlindState::setOpenSpeed(uint8_t val){
 void CBlindState::setIsWindowClosed(bool val){ m_bIsWindowClosed = val; }
 
 //Getters
-uint8_t CBlindState::getOpenPercent()const { return m_nOpenPercent; }
+CNotofiedValue<uint8_t> &CBlindState::getOpenPercent(){ return m_nOpenPercent; }
+CNotofiedValue<uint8_t> CBlindState::getOpenPercent()const { return m_nOpenPercent; }
 uint8_t CBlindState::getOpenSpeed()const { return m_nOpenSpeed; }
 bool CBlindState::isWindowClosed()const { return m_bIsWindowClosed; }
 
@@ -109,11 +113,32 @@ bool CBlindState::isWindowClosed()const { return m_bIsWindowClosed; }
 CBlindCalibrate::CBlindCalibrate(uint8_t nBlindNo) : CBlindBase(nBlindNo){}
 CBlindCalibrate::~CBlindCalibrate(){}
 
-void CBlindCalibrate::setCalibrateStep(CBlindCalibrate::CalibrationStep val){ m_nCalibrateStep = val; }
+void CBlindCalibrate::setCalibrateStep(uint8_t val){ m_nCalibrateStep = val; }
 void CBlindCalibrate::setCalibrateMetadataObject(const TBlindCalibrateMetadata &val){ m_calibrateMetadata = val; }
 
-CBlindCalibrate::CalibrationStep CBlindCalibrate::getCalibrateStep()const { return m_nCalibrateStep; }
+uint8_t CBlindCalibrate::getCalibrateStep()const { return m_nCalibrateStep; }
 TBlindCalibrateMetadata &CBlindCalibrate::getCalibrateMetadataObject(){ return m_calibrateMetadata; }
+
+void CBlindCalibrate::setPositionArrayValue(uint8_t nPos, uint32_t nValue)
+{
+	if(nPos < POSITION_ARRAY_SIZE)
+	{
+		m_calibrateMetadata.positionArray[nPos] = nValue;
+		m_calibrateMetadata.nRegisteredSteps++;
+	}
+}
+
+uint32_t CBlindCalibrate::getPositionArrayValue(uint8_t nPos)
+{
+	if(nPos < POSITION_ARRAY_SIZE)
+	{
+		return m_calibrateMetadata.positionArray[nPos];
+	}
+	else
+	{
+		return 0;
+	}
+}
 
 /*********************/
 //CServoModel Class
@@ -127,6 +152,7 @@ CServoModel::CServoModel(uint8_t nBlindNo)
 	  CBlindManualDrive(nBlindNo)
 {
 	readBlindMetadataFromEeprom();
+	readBlindCalibrateMetadataFromEeprom();
 }
 
 void CServoModel::writeBlindMetadataToEeprom()
@@ -136,10 +162,10 @@ void CServoModel::writeBlindMetadataToEeprom()
 	eeprom_write_block(&temp, &eem_blindMetadataArr[getBlindNumber() - 1], sizeof(TBlindMetadata));
 }
 
-TBlindMetadata CServoModel::readBlindMetadataFromEeprom()
+void CServoModel::readBlindMetadataFromEeprom()
 {
 	TBlindMetadata temp;
-	eeprom_read_block(&temp, &eem_blindMetadataArr[getBlindNumber() - 1], sizeof(TBlindMetadata));
+	eeprom_read_block(&getBlindMetadataObject(), &eem_blindMetadataArr[getBlindNumber() - 1], sizeof(TBlindMetadata));
 
 //	CUart::getInstance()->puts("readBlindMetadataFromEeprom\r\n");
 //
@@ -151,12 +177,13 @@ TBlindMetadata CServoModel::readBlindMetadataFromEeprom()
 //	CUart::getInstance()->putint(temp.isMetadataInitialized, 10);
 //	CUart::getInstance()->puts("r\n");
 
-	if(temp.blindType != WindowData::BlindType::None)
-	{
-		setBlindMetadataObject(temp);
-	}
+	//if(temp.blindType != WindowData::BlindType::None)
+	//{
+		//setBlindMetadataObject(temp);
+	//}
 
-	return temp;
+
+	//return temp;
 }
 
 void CServoModel::writeBlindCalibrateMetadataToEeprom()
@@ -164,15 +191,15 @@ void CServoModel::writeBlindCalibrateMetadataToEeprom()
 	eeprom_write_block((const void*)&getCalibrateMetadataObject(), (void*)&eem_blindCalibrateMetadata[getBlindNumber() - 1], sizeof(TBlindMetadata));
 }
 
-TBlindCalibrateMetadata CServoModel::readBlindCalibrateMetadataFromEeprom()
+void CServoModel::readBlindCalibrateMetadataFromEeprom()
 {
 	TBlindCalibrateMetadata temp;
-	eeprom_read_block((void*)&temp, (const void*)&eem_blindCalibrateMetadata[getBlindNumber() - 1], sizeof(TBlindMetadata));
-	if(temp.bIsCalibrated)
+	eeprom_read_block((void*)&getCalibrateMetadataObject(), (const void*)&eem_blindCalibrateMetadata[getBlindNumber() - 1], sizeof(TBlindMetadata));
+	//if(temp.bIsCalibrated)
 	{
-		setCalibrateMetadataObject(temp);
+		//setCalibrateMetadataObject(temp);
 	}
 
-	return temp;
+	//return temp;
 }
 

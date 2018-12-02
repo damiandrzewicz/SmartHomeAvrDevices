@@ -29,10 +29,18 @@ void CServoController::registerObjects(ServoData *pServoData, CQuadratureEncoder
 
 	m_pEncoder = pEncoder;
 	m_pServoModel = pServoModel;
-	m_nLastOpenPercentValue = m_pServoModel->getOpenPercent();
+	//m_lastServoModel.setBlindNumber(pServoModel->getBlindNumber());
+	m_nLastOpenPercentValue = m_pServoModel->getOpenPercent().getValue();
 
 	//Init ADC
 	m_adc.initADC(m_pServoData->pinADC.pin);
+
+	//processRunServo(WindowData::Direction::Open, 100);
+	//processSpeed(50);
+	//m_currentDirection = WindowData::Direction::Close;
+
+	//m_pServoModel->setOpenPercent(0);
+	//m_bInitialPosition = true;
 }
 
 void CServoController::initPins()
@@ -44,22 +52,28 @@ void CServoController::initPins()
 	IO::Port::Set(m_pServoData->pinM2.port, m_pServoData->pinM2.pin, IO::state::low);
 }
 
-void CServoController::processSpeed(uint8_t percent)
+void CServoController::processSpeed(const uint8_t &percent)
 {
 	if(percent > 100)
-		percent = 100;
-	(m_pServoData->timer1Obj->*m_pServoData->enablePwmFunPtr)((percent * 255) / 100);
+	{
+		( (m_pServoData->timer1Obj)->*(m_pServoData->enablePwmFunPtr))(100);
+	}
+	else
+	{
+		( (m_pServoData->timer1Obj)->*(m_pServoData->enablePwmFunPtr))((percent * 255) / 100);
+	}
+
 }
 
 //Operations
-void CServoController::runClockwise(uint8_t speed)
+void CServoController::runClockwise(const uint8_t &speed)
 {
 	IO::Port::Set(m_pServoData->pinM1.port, m_pServoData->pinM1.pin, IO::state::high);
 	IO::Port::Set(m_pServoData->pinM2.port, m_pServoData->pinM2.pin, IO::state::low);
 	processSpeed(speed);
 }
 
-void CServoController::runCounterClockise(uint8_t speed)
+void CServoController::runCounterClockise(const uint8_t &speed)
 {
 	IO::Port::Set(m_pServoData->pinM1.port, m_pServoData->pinM1.pin, IO::state::low);
 	IO::Port::Set(m_pServoData->pinM2.port, m_pServoData->pinM2.pin, IO::state::high);
@@ -80,193 +94,496 @@ bool CServoController::checkIfIsInitialized()
 
 bool CServoController::isCalibrationActive()
 {
-	return (m_pServoModel->getCalibrateStep() == CBlindCalibrate::CalibrationStep::Idle) ? false : true;
+	return (m_pServoModel->getCalibrateStep() == static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::Idle)) ? false : true;
 }
+
 
 void CServoController::processCalibrate()
 {
-	static CBlindCalibrate::CalibrationStep lastStep = CBlindCalibrate::CalibrationStep::Idle;
-	if(m_pServoModel->getCalibrateStep() != lastStep)
+	if(m_pServoModel->getCalibrateStep() != m_lastCalibrationStep)
 	{
 		m_bCalibrationStepReady = true;
 	}
 
-	if(m_pServoModel->getCalibrateStep() == CBlindCalibrate::CalibrationStep::ActivateCalibration && m_bCalibrationStepReady)
+	if(m_pServoModel->getCalibrateStep() == static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::ActivateCalibration)
+			&& m_bCalibrationStepReady)
 	{
-		PORTB ^= (1 << PB7);
-		CUart::getInstance()->puts("activ calibr\r\n");
-		//Process step 1 - Activate calibration
+		//CUart::getInstance()->puts("activ calibr\r\n");
 		m_bCalibrationStepReady = false;
 	}
-	else if(m_pServoModel->getCalibrateStep() == CBlindCalibrate::CalibrationStep::StartPoint && m_bCalibrationStepReady)
+	else if( (m_pServoModel->getCalibrateStep() >= static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::StartPoint)
+			&& m_pServoModel->getCalibrateStep() <= static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::EndPoint))
+			&& m_bCalibrationStepReady)
 	{
-		PORTB ^= (1 << PB7);
-		//Save start point
-		m_pEncoder->resetCounter();
-		CUart::getInstance()->puts("start calibr\r\n");
-		m_bCalibrationStepReady = false;
-	}
-	else if(m_pServoModel->getCalibrateStep() == CBlindCalibrate::CalibrationStep::EndPoint && m_bCalibrationStepReady)
-	{
-		PORTB ^= (1 << PB7);
-		m_pServoModel->getCalibrateMetadataObject().singleEncoderStep = m_pEncoder->getCounter() / 2;
-		CUart::getInstance()->puts("endpt calibr\r\n");
-		CUart::getInstance()->puts("singleEncoderStep=");
-		CUart::getInstance()->putll(m_pServoModel->getCalibrateMetadataObject().singleEncoderStep, 10);
-		CUart::getInstance()->puts("\r\n");
-		m_bCalibrationStepReady = false;
-	}
-	else if(m_pServoModel->getCalibrateStep() == CBlindCalibrate::CalibrationStep::EndPointFull && m_bCalibrationStepReady)
-	{
-		PORTB ^= (1 << PB7);
+		if( m_pServoModel->getCalibrateStep() == static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::StartPoint ))
+		{
+			//CUart::getInstance()->puts("enc=");
+			///CUart::getInstance()->putll(m_pEncoder->getCounter(), 10);
+			//CUart::getInstance()->puts("\r\n");
 
-		m_pServoModel->getCalibrateMetadataObject().maxEncoderCounter =
-				findClosestValue(m_pEncoder->getCounter(), m_pServoModel->getCalibrateMetadataObject().singleEncoderStep);
+			m_pEncoder->resetCounter();
 
-		CUart::getInstance()->puts("EndPointFull calibr\r\n");
-		CUart::getInstance()->puts("maxEncoderCounter=");
-		CUart::getInstance()->putll(m_pServoModel->getCalibrateMetadataObject().maxEncoderCounter, 10);
-		CUart::getInstance()->puts("\r\n");
+			//CUart::getInstance()->puts("enc=");
+			//CUart::getInstance()->putll(m_pEncoder->getCounter(), 10);
+			//CUart::getInstance()->puts("\r\n");
+		}
+		else
+		{
+			m_pServoModel->setPositionArrayValue(m_pServoModel->getCalibrateStep(), m_pEncoder->getCounter());
+			//CUart::getInstance()->puts("arrVal=");
+			//CUart::getInstance()->putll(m_pServoModel->getPositionArrayValue(m_pServoModel->getCalibrateStep()), 10);
+			//CUart::getInstance()->puts("\r\n");
+		}
 
 		m_bCalibrationStepReady = false;
 	}
-	else if(m_pServoModel->getCalibrateStep() == CBlindCalibrate::CalibrationStep::Offset && m_bCalibrationStepReady)
+	else if(m_pServoModel->getCalibrateStep() == static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::PointsReady)
+			&& m_bCalibrationStepReady)
 	{
-		PORTB ^= (1 << PB7);
-		m_pServoModel->setManualDriveDirection(WindowData::Direction::Close);
+		//TODO save array in EEPROM
+
 		m_bCalibrationStepReady = false;
 	}
-	else if(m_pServoModel->getCalibrateStep() == CBlindCalibrate::CalibrationStep::Finished
+	else if(m_pServoModel->getCalibrateStep() == static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::FullClose)
+			&& m_bCalibrationStepReady)
+	{
+		//PORTB ^= (1 << PB7);
+		//CUart::getInstance()->puts("FullClose\r\n");
+		m_pServoModel->setManualDriveDirection(WindowData::Direction::Open);
+		m_bCalibrationStepReady = false;
+
+		m_pServoModel->setCalibrateStep(static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::Offset));
+	}
+	else if(m_pServoModel->getCalibrateStep() == static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::Offset)
 			&& m_bCalibrationStepReady
-			&& m_nCurrentError)
+			&& m_nCurrentGuardError)
 	{
-		PORTB ^= (1 << PB7);
+		//PORTB ^= (1 << PB7);
+
+		//m_pEncoder->setCounter(m_pServoModel->getCalibrateMetadataObject().offsetEncoder);
 		m_pServoModel->getCalibrateMetadataObject().offsetEncoder = m_pEncoder->getCounter();
-		CUart::getInstance()->puts("Finished calibr\r\n");
-		CUart::getInstance()->puts("offsetEncoder=");
-		CUart::getInstance()->putll(m_pServoModel->getCalibrateMetadataObject().offsetEncoder, 10);
-		CUart::getInstance()->puts("\r\n");
 
+		//if(!checkIfIsCalibrated())
+		//{
+		//	CUart::getInstance()->puts("noCal-setOffset\r\n");
+		//	m_pServoModel->getCalibrateMetadataObject().offsetEncoder = m_pEncoder->getCounter();
+		//}
+		//else
+		//{
+		//	CUart::getInstance()->puts("Cal-setcounter\r\n");
 
+		//}
 
 		m_bCalibrationStepReady = false;
+		m_pServoModel->setCalibrateStep(static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::Finished));
+
+		//CUart::getInstance()->puts("Offset\r\n");
+		//CUart::getInstance()->puts("offsetEncoder=");
+		//CUart::getInstance()->putll(m_pServoModel->getCalibrateMetadataObject().offsetEncoder, 10);
+		//CUart::getInstance()->puts("\r\n");
+	}
+	else if(m_pServoModel->getCalibrateStep() == static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::Finished)
+			)
+	{
+		//PORTB ^= (1 << PB7);
+
+		//CUart::getInstance()->puts("Finished\r\n");
+		//CUart::getInstance()->puts("Finished calibr\r\n");
+		//CUart::getInstance()->puts("offsetEncoder=");
+		//CUart::getInstance()->putll(m_pServoModel->getCalibrateMetadataObject().offsetEncoder, 10);
+		//CUart::getInstance()->puts("\r\n");
+
+		//Commit eeprom here
+
+		//Open to position 0
+		m_nCurrentGuardError = false;
+
+
+		//m_pServoModel->setOpenPercent(0);
+		//if(!checkIfIsCalibrated())
+		//{
+			m_currentDirection = WindowData::Direction::Close;
+		//}
+		//else
+		//{
+			//m_currentDirection = WindowData::Direction::Open;
+		//}
+
+		//m_bInitialPosition = true;
+
+		m_pServoModel->setCalibrateStep(static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::Idle));
+
+		if(!checkIfIsCalibrated())
+		{
+			m_pServoModel->getCalibrateMetadataObject().bIsCalibrated = true;
+		}
+
+		m_bCalibrationStepReady = false;
+
 	}
 
-	lastStep = m_pServoModel->getCalibrateStep();
+	m_lastCalibrationStep = m_pServoModel->getCalibrateStep();
 }
 
-uint32_t CServoController::findClosestValue(uint32_t nMaxRange, uint32_t nSingleStep, uint32_t nSetValue, bool bUseSetValue)
+bool CServoController::isGoingToInitPositionActive()
 {
-   if(!nSingleStep)
-		return 0;
+	return (m_nItialPositionStep != 0) ? true : false;
+}
 
-	if(!bUseSetValue)
+void CServoController::processInitialPosition()
+{
+	if(m_nItialPositionStep == 1)
 	{
-		nSetValue = nMaxRange;
+		//m_pServoModel->setManualDriveDirection(WindowData::Direction::Open);
+		m_currentDirection = WindowData::Direction::Open;
+		m_nItialPositionStep = 2;
+		//CUart::getInstance()->puts("initPos-1\r\n");
 	}
-
-	uint16_t i = 0;
-	uint16_t step = 0;
-	uint32_t diff = 999999;	//TODO assing max inteeger value
-	while( (nSingleStep * i) <= (nMaxRange + nSingleStep) )
+	else if(m_nItialPositionStep == 2 && m_nCurrentGuardError)
 	{
-		uint32_t tempDiff = abs( static_cast<int32_t>(nSetValue - (nSingleStep * i)) );
-		if(tempDiff < diff)
-		{
-			diff = tempDiff;
-			step = i;
-		}
-		i++;
+		m_pEncoder->setCounter(m_pServoModel->getCalibrateMetadataObject().offsetEncoder);
+		m_nItialPositionStep = 3;
+		//CUart::getInstance()->puts("initPos-2\r\n");
 	}
+	else if(m_nItialPositionStep == 3)
+	{
+		m_currentDirection = WindowData::Direction::Close;
+		m_nItialPositionStep = 0;
+		//CUart::getInstance()->puts("initPos-3\r\n");
+	}
+}
 
-	return nSingleStep * step;
+void CServoController::startGointToInitPosition()
+{
+	if( checkIfIsCalibrated() )
+	{
+		m_nItialPositionStep = 1;
+	}
+}
+
+bool CServoController::checkIfIsCalibrated()
+{
+	return m_pServoModel->getCalibrateMetadataObject().bIsCalibrated;
 }
 
 uint16_t CServoController::currentMeasure()
 {
-	uint16_t u16_average = m_adc.averageADC();
+	uint32_t voltage =  (m_adc.averageADC() * 25);	//mV * 10
+	//return voltage;
 
-	uint16_t u16_voltage;
-	uint16_t u16_current;
-	uint32_t u16_temp;
-
-
-	u16_temp = (u16_average + m_adc.getDT()) * 2560UL;
-	u16_voltage = u16_temp / 1023;		//result in mV
-	u16_current = ( u16_voltage * 1000UL ) / m_pServoData->adcResistorValue;
-
-	return u16_current;
+	return ( (voltage * 100) / (m_pServoData->adcResistorValue) );
 }
 
 void CServoController::currentGuard()
 {
-	if(currentMeasure() > m_pServoData->adcMaxCurrent)
+
+	//current = currentMeasure();
+	if(isServoRunning())
 	{
-		processRunServo(WindowData::Direction::Stop, 0);
-		m_nCurrentError = true;
+		if(m_bCurrentGuardMeasureDelay)
+		{
+			if(!m_lTime)
+			{//CUart::getInstance()->puts("timo=0\r\n");
+				m_lTime = millis();
+
+				//CUart::getInstance()->puts("guardTimeoutStart=");
+				//CUart::getInstance()->putll(m_lTime, 10);
+				//CUart::getInstance()->puts("\r\n");
+			}
+			else
+			{
+				//uint16_t r = (millis() - m_lTime);
+				if( (millis() - m_lTime) > m_nTimeoutValue)
+				{
+					//CUart::getInstance()->puts("guardTimeout=\r\n");
+					//CUart::getInstance()->putll(r, 10);
+					//CUart::getInstance()->puts("\r\n");
+					setCurrentGuardDelayInactive();
+				}
+			}
+		}
+		else
+		{
+			//uint16_t currentValue = currentMeasure();
+			if(!m_bCurrentGuardMeasureDelay && (currentMeasure() > m_pServoData->adcMaxCurrent) )
+			{
+				m_bBlockModelOperations = true;
+				m_nCurrentGuardError = true;
+				m_currentDirection = WindowData::Direction::Stop;	//Stop servo
+				//CUart::getInstance()->puts("guardStop\r\n");
+				//CUart::getInstance()->puts("guardCurr=");
+				//CUart::getInstance()->putll(currentValue, 10);
+				//CUart::getInstance()->puts("\r\n");
+			}
+		}
+
+
+
 	}
+}
+
+void CServoController::setCurrentGuardDelayActive()
+{
+	m_bCurrentGuardMeasureDelay = true;
+}
+
+void CServoController::setCurrentGuardDelayInactive()
+{
+	m_bCurrentGuardMeasureDelay = false;
+	m_lTime = 0;
 }
 
 void CServoController::encoderGuard()
 {
-//	if(m_nLastOpenPercentValue != m_pServoModel->getOpenPercent())
+	bool bInverted = false;
+//	if(m_pServoModel->getBlindMetadataObject().motorSide == WindowData::MotorSide::Left)
 //	{
-//
+//		bInverted = true;
 //	}
 
-	if(m_pEncoder->getCounter() == m_nTargetEncoderValue)
+	if(m_currentDirection == WindowData::Direction::Close)
 	{
-		processRunServo(WindowData::Direction::Stop, 0);
+
+		if(m_pEncoder->getCounter(bInverted) >= m_nTargetEncoderValue)
+		{
+			//CUart::getInstance()->puts("encGuard-close-stop\r\n");
+			m_currentDirection = WindowData::Direction::Stop;
+		}
+	}
+	else if(m_currentDirection == WindowData::Direction::Open)
+	{
+		if(m_pEncoder->getCounter(bInverted) < m_nTargetEncoderValue)
+		{
+			//CUart::getInstance()->puts("encGuard-open-stop\r\n");
+			m_currentDirection = WindowData::Direction::Stop;
+		}
 	}
 }
 
-void CServoController::processRunServo(WindowData::Direction dir, uint8_t speed)
+void CServoController::processRunServo(/*WindowData::Direction dir, uint8_t speed*/)
 {
-	if(dir == WindowData::Direction::Open)
+	if(m_currentDirection == m_lastDirection)
 	{
-		runClockwise(speed);
+		return;
 	}
-	else if(dir == WindowData::Direction::Close)
+
+	if(!m_bBlockModelOperations && m_nCurrentGuardError)
 	{
-		runCounterClockise(speed);
+		if(m_currentDirection == m_lastDirectionCurrentGuard || m_currentDirection == WindowData::Direction::Stop)
+			return;
+		else
+			m_nCurrentGuardError = false;
+	}
+
+	if(m_currentDirection != m_lastDirection)
+	{
+		m_lastDirection = m_currentDirection;
+
+		if(m_currentDirection != WindowData::Direction::Stop)
+			m_lastDirectionCurrentGuard = m_currentDirection;
+	}
+//
+//	if(m_currentDirection == m_lastDirection)
+//	{
+//		return;
+//	}
+//	else
+//	{
+//		m_lastDirection = m_currentDirection;
+//	}
+
+	//CUart::getInstance()->puts("currDir=\r\n");
+	//CUart::getInstance()->putint(static_cast<uint8_t>(m_currentDirection), 10);
+	//CUart::getInstance()->puts("\r\n");
+
+	//CUart::getInstance()->puts("lastDir=\r\n");
+	//CUart::getInstance()->putint(static_cast<uint8_t>(m_lastDirection), 10);
+	//CUart::getInstance()->puts("\r\n");
+
+	if(m_currentDirection == WindowData::Direction::Open)
+	{
+		m_bIsRunning = true;
+		runClockwise(m_nSpeed);
+		setCurrentGuardDelayActive();
+	}
+	else if(m_currentDirection == WindowData::Direction::Close)
+	{
+		//CUart::getInstance()->puts("exec close\r\n");
+		m_bIsRunning = true;
+		runCounterClockise(m_nSpeed);
+		setCurrentGuardDelayActive();
 	}
 	else
 	{
+		//CUart::getInstance()->puts("exec stop\r\n");
+		m_bIsRunning = false;
 		stop();
+		setCurrentGuardDelayInactive();
 	}
+
+	if(m_nCurrentGuardError && m_bBlockModelOperations)
+		m_bBlockModelOperations = false;
+}
+
+bool CServoController::isServoRunning()
+{
+	return m_bIsRunning;
 }
 
 void CServoController::processManualDrive()
 {
-	processRunServo(m_pServoModel->getManualDriveDirection(), 100);
+	//if(m_bBlockMotion)
+	//	return;
+
+	if(m_bBlockModelOperations)
+	{
+		return;
+	}
+
+	if(m_pServoModel->getManualDriveDirection().hasChanged())
+	{
+		m_currentDirection = m_pServoModel->getManualDriveDirection().getValue();
+		m_pServoModel->getManualDriveDirection().setHasChanged(false);
+	}
+
+	m_nSpeed = 100;
+}
+
+void CServoController::processAutoDrive()
+{
+	if(m_bBlockModelOperations)
+	{
+		return;
+	}
+
+//	static bool testV = false;
+//
+//	if(!testV)
+//	{
+//		testV = true;
+//		m_nTargetEncoderValue = m_pServoModel->getPositionArrayValue(5) + m_pServoModel->getPositionArrayValue(5);
+//		m_currentDirection = WindowData::Direction::Close;
+//		CUart::getInstance()->puts("processAutoDriveNew - Target=");
+//		CUart::getInstance()->putll(m_nTargetEncoderValue, 10);
+//		CUart::getInstance()->puts("\r\n");
+//	}
+
+	if(m_pServoModel->getOpenPercent().hasChanged())
+	{
+		calculateTargetEncoderValue();
+
+		CUart::getInstance()->puts("processAutoDrive - Target=");
+		CUart::getInstance()->putll(m_nTargetEncoderValue, 10);
+		CUart::getInstance()->puts("\r\n");
+
+		//CUart::getInstance()->putll(m_nTargetEncoderValue, 10);
+
+
+		if(m_pServoModel->getOpenPercent().getValue() > m_nLastOpenPercentValue)
+		{PORTB ^= (1 << PB7);
+			//CUart::getInstance()->puts("call close\r\n");
+			m_currentDirection = WindowData::Direction::Close;
+			m_nLastOpenPercentValue = m_pServoModel->getOpenPercent().getValue();
+		}
+		else if(m_pServoModel->getOpenPercent().getValue() < m_nLastOpenPercentValue)
+		{PORTB ^= (1 << PB7);
+			//CUart::getInstance()->puts("call open\r\n");
+			m_currentDirection = WindowData::Direction::Open;
+			m_nLastOpenPercentValue = m_pServoModel->getOpenPercent().getValue();
+		}
+		else
+		{
+			m_currentDirection = WindowData::Direction::Stop;
+		}
+
+		m_pServoModel->getOpenPercent().setHasChanged(false);
+	}
 }
 
 bool CServoController::calculateTargetEncoderValue()
 {
-	uint32_t nOpenPercent = m_pServoModel->getOpenPercent();
-	WindowData::Visibility vis = m_pServoModel->getBlindMetadataObject().visibility;
+	uint32_t nOpenPercent = m_pServoModel->getOpenPercent().getValue();
+
+	CUart::getInstance()->puts("Open%=");
+	CUart::getInstance()->putint(nOpenPercent, 10);
+	CUart::getInstance()->puts("\r\n");
+
+	WindowData::Visibility vis = m_pServoModel->visibility;
+//
+	CUart::getInstance()->puts("Vis%=");
+	CUart::getInstance()->putint(static_cast<uint8_t>(vis), 10);
+	CUart::getInstance()->puts("\r\n");
+
 	WindowData::BlindType blindType = m_pServoModel->getBlindMetadataObject().blindType;
-	uint32_t nTempEncoderValue = (m_pServoModel->getCalibrateMetadataObject().maxEncoderCounter * nOpenPercent) / 100;
+	CUart::getInstance()->puts("BlindTyp%=");
+	CUart::getInstance()->putint(static_cast<uint8_t>(blindType), 10);
+	CUart::getInstance()->puts("\r\n");
 
 	if(blindType == WindowData::BlindType::FullBlackout)
 	{
-		m_nTargetEncoderValue = nTempEncoderValue;
-		return true;
-	}
-	else if(blindType == WindowData::BlindType::DayNight)
-	{
-		uint32_t nNearestEncoderValue;
-		if(vis == WindowData::Visibility::Day)
+		if(m_pServoModel->getCalibrateMetadataObject().nRegisteredSteps == 1)
 		{
-
-		}
-		else if(vis == WindowData::Visibility::Night)
-		{
-
+			m_nTargetEncoderValue = (m_pServoModel->getPositionArrayValue(1) * nOpenPercent) / 100;
+			return true;
 		}
 		else
 		{
 			return false;
+		}
+	}
+	else if(blindType == WindowData::BlindType::DayNight)
+	{
+		CUart::getInstance()->puts("Bt-DN\r\n");
+
+		uint8_t nRealSteps = m_pServoModel->getCalibrateMetadataObject().nRegisteredSteps;
+		uint8_t nVirtualSteps = nRealSteps;
+		if(vis == WindowData::Visibility::Night)
+		{
+			nVirtualSteps += 1;
+		}
+
+		CUart::getInstance()->puts("nSteps=");
+		CUart::getInstance()->putll(nRealSteps, 10);
+		CUart::getInstance()->puts("\r\n");
+
+		CUart::getInstance()->puts("nVirtualSteps=");
+		CUart::getInstance()->putll(nVirtualSteps, 10);
+		CUart::getInstance()->puts("\r\n");
+
+		uint8_t nVirtualPos = ( (nVirtualSteps * nOpenPercent) / 100) + 0.5;
+
+		CUart::getInstance()->puts("nVirtualPos=");
+		CUart::getInstance()->putll(nVirtualPos, 10);
+		CUart::getInstance()->puts("\r\n");
+
+		if(!nVirtualPos)
+		{
+			m_nTargetEncoderValue = 0;
+		}
+		else if(vis == WindowData::Visibility::Day)
+		{
+			m_nTargetEncoderValue = m_pServoModel->getPositionArrayValue(nVirtualPos - 1);
+		}
+		else if(vis == WindowData::Visibility::Night)
+		{
+
+			if(nVirtualPos == 1)
+			{
+				uint16_t currentPos = m_pServoModel->getPositionArrayValue(0);
+				m_nTargetEncoderValue = currentPos - (currentPos / 2);
+			}
+			else if( nVirtualPos <= nRealSteps)
+			{
+				uint16_t currentPos = m_pServoModel->getPositionArrayValue(nVirtualPos - 2);
+				uint16_t nextPos = m_pServoModel->getPositionArrayValue(nVirtualPos -1);
+				m_nTargetEncoderValue = currentPos + ((nextPos - currentPos) / 2);
+			}
+			else if(nVirtualPos == nRealSteps + 1)
+			{
+				uint16_t currentPos = m_pServoModel->getPositionArrayValue(nVirtualPos - 2);
+				uint16_t prevPos = m_pServoModel->getPositionArrayValue(nVirtualPos -3);
+				m_nTargetEncoderValue = currentPos + ((currentPos - prevPos) / 2);
+			}
 		}
 	}
 	else
@@ -274,75 +591,38 @@ bool CServoController::calculateTargetEncoderValue()
 		return false;
 	}
 
-	//uint64_t tempPercent = percent *
-
-	//m_servoModel.setOpenPercent(percent);
-	////	uint64_t temp = (percent / 100);
-	////	//if(m_servoModel.getBlindType() == WindowData::BlindType::FullBlackout)
-	////	if(m_servoModel.getBlindMetadataObject().blindType == WindowData::BlindType::FullBlackout)
-	////	{
-	////		m_setEncoderCounter = m_maxEncoderCounter * temp;
-	////		return;
-	////	}
-	////	else
-	////	{
-	////		//Here Day/Night alghoritm becomes
-	////		uint64_t setVal = m_maxEncoderCounter * temp;
-	////		if(setVal == 0)
-	////		{
-	////			m_setEncoderCounter =0;
-	////			return;
-	////		}
-	////		else
-	////		{
-	////			//Check Type
-	////			uint8_t startValue;
-	////			if(vis == WindowData::Visibility::Day)
-	////				startValue = 2;
-	////			else if(vis == WindowData::Visibility::Night)
-	////				startValue = 1;
-	////			else
-	////			{
-	////				m_setEncoderCounter = 0;
-	////				return;
-	////			}
-	////
-	////			//Prepare temp value
-	////			uint64_t tempVal = 0;
-	////			for(uint8_t i = startValue; i <= m_maxEncoderCounter; i += 2)
-	////			{
-	////				uint64_t realVal = i * m_singleEncoderStep;
-	////				uint64_t diffVal = abs(realVal - setVal);
-	////				if(diffVal < tempVal)
-	////					break;
-	////				else
-	////					tempVal = diffVal;
-	////			}
-	////			m_setEncoderCounter = tempVal;
-	////		}
-	////	}
+	return true;
 }
 
 
 void CServoController::event()
 {
+	/*
 	//Chekc if servo is initialized
 	if(!checkIfIsInitialized())
 	{
 		return;	//Do nothing
 	}
 
+*/
 	if(isCalibrationActive())
 	{
+		PORTB &= ~(1 << PB5);
 		processCalibrate();
 		processManualDrive();
 	}
+	else if(isGoingToInitPositionActive())
+	{
+		processInitialPosition();
+	}
 	else
 	{
-
+		PORTB |= (1 << PB5);
+		encoderGuard();
+		processAutoDrive();
 	}
 
-	//Current guard
+	processRunServo();
 	currentGuard();
 }
 

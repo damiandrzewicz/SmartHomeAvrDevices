@@ -482,7 +482,8 @@ bool CUartController::readBlindMetadata(CBlindMetadata &refBlindMetadata)
 //	refBlindMetadata.setInitialized(m_servoModelArr[nPos]->isInitialized());
 
 	refBlindMetadata.getBlindMetadataObject().blindType = m_servoModelArr[nPos]->getBlindMetadataObject().blindType;
-	refBlindMetadata.getBlindMetadataObject().visibility = m_servoModelArr[nPos]->getBlindMetadataObject().visibility;
+	refBlindMetadata.getBlindMetadataObject().motorSide = m_servoModelArr[nPos]->getBlindMetadataObject().motorSide;
+	refBlindMetadata.visibility = m_servoModelArr[nPos]->visibility;
 	//refBlindMetadata.getBlindMetadataObject().isMetadataInitialized = m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized;
 
 	//m_servoModelArr[nPos]->printData();
@@ -499,19 +500,22 @@ bool CUartController::processBlindMetadata(CBlindMetadata &refBlindMetadata)
 //	m_servoModelArr[nPos]->setInitialized(true);
 
 	bool bSaveMetadataInEeprom = false;
-	if(m_servoModelArr[nPos]->getBlindMetadataObject().blindType != refBlindMetadata.getBlindMetadataObject().blindType)
+	if(m_servoModelArr[nPos]->getBlindMetadataObject().blindType != refBlindMetadata.getBlindMetadataObject().blindType
+			|| m_servoModelArr[nPos]->getBlindMetadataObject().motorSide != refBlindMetadata.getBlindMetadataObject().motorSide)
 	{
 		bSaveMetadataInEeprom = true;
 	}
 
 	m_servoModelArr[nPos]->getBlindMetadataObject().blindType = refBlindMetadata.getBlindMetadataObject().blindType;
-	m_servoModelArr[nPos]->getBlindMetadataObject().visibility = refBlindMetadata.getBlindMetadataObject().visibility;
-	//m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized = true;
+	m_servoModelArr[nPos]->getBlindMetadataObject().motorSide = refBlindMetadata.getBlindMetadataObject().motorSide;
 
 	if(bSaveMetadataInEeprom)
 	{
 		m_servoModelArr[nPos]->writeBlindMetadataToEeprom();
 	}
+
+	m_servoModelArr[nPos]->visibility = refBlindMetadata.visibility;
+	//m_servoModelArr[nPos]->getBlindMetadataObject().isMetadataInitialized = true;
 
 	//m_servoModelArr[nPos]->readBlindMetadataFromEeprom();
 	return true;
@@ -520,14 +524,14 @@ bool CUartController::processBlindMetadata(CBlindMetadata &refBlindMetadata)
 bool CUartController::processManualDrive(CBlindManualDrive &refManualDrive)
 {
 	uint8_t nPos = refManualDrive.getBlindNumber() - 1;
-	m_servoModelArr[nPos]->setManualDriveDirection(refManualDrive.getManualDriveDirection());
+	m_servoModelArr[nPos]->setManualDriveDirection(refManualDrive.getManualDriveDirection().getValue());
 	return true;
 }
 
 bool CUartController::readBlindState(CBlindState &refBlindState)
 {
 	uint8_t nPos = refBlindState.getBlindNumber() - 1;
-	refBlindState.setOpenPercent(m_servoModelArr[nPos]->getOpenPercent());
+	refBlindState.setOpenPercent(m_servoModelArr[nPos]->getOpenPercent().getValue());
 	refBlindState.setOpenSpeed(m_servoModelArr[nPos]->getOpenSpeed());
 	refBlindState.setIsWindowClosed(m_servoModelArr[nPos]->isWindowClosed());
 	return true;
@@ -536,7 +540,7 @@ bool CUartController::readBlindState(CBlindState &refBlindState)
 bool CUartController::processBlindState(CBlindState &refBlindState)
 {
 	uint8_t nPos = refBlindState.getBlindNumber() - 1;
-	m_servoModelArr[nPos]->setOpenPercent(refBlindState.getOpenPercent());
+	m_servoModelArr[nPos]->setOpenPercent(refBlindState.getOpenPercent().getValue());
 	m_servoModelArr[nPos]->setOpenSpeed(refBlindState.getOpenSpeed());
 	return true;
 }

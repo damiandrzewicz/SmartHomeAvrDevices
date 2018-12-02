@@ -33,6 +33,9 @@ CTimer1::CTimer1()
 	IO::Dir::Set(&DDRD, PD4, IO::direction::out);
 	IO::Port::Set(&PORTD, PD4, IO::state::low);
 
+	IO::Dir::Set(&DDRD, PD5, IO::direction::out);
+	IO::Port::Set(&PORTD, PD5, IO::state::low);
+
 	//Initialize Timer1 into FastPwm mode
 	TCCR1A |= (1<<WGM10);
 	TCCR1B |= (1<<WGM12);	//FastPWM mode

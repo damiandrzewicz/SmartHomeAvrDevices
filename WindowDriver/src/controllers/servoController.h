@@ -38,6 +38,7 @@ public:
 	//Setters
 	void registerObjects(ServoData *pServoData, CQuadratureEncoder *pEncoder, CServoModel *pServoModel);
 
+	void startGointToInitPosition();
 
 
 	void event();
@@ -45,28 +46,32 @@ public:
 private:
 	void initPins();
 
-	void processSpeed(uint8_t percent);
-	void runClockwise(uint8_t speed);
-	void runCounterClockise(uint8_t speed);
+	void processSpeed(const uint8_t &percent);
+	void runClockwise(const uint8_t &speed);
+	void runCounterClockise(const uint8_t &speed);
 	void stop();
-	void processRunServo(WindowData::Direction dir, uint8_t speed);
+	void processRunServo();
 	bool calculateTargetEncoderValue();
 
 	void processCalibrate();
+	void processInitialPosition();
 	void processManualDrive();
-	//void processFullBlackoutCalibration();
-	//void processDayNightCalibration();
-	//void processOffsetCalibration();
+	void processAutoDrive();
 
 	bool checkIfIsInitialized();
+	bool checkIfIsCalibrated();
+
 	bool isCalibrationActive();
+	bool isGoingToInitPositionActive();
 
 	uint16_t currentMeasure();
 	void currentGuard();
 	void encoderGuard();
 
-	uint32_t findClosestValue(uint32_t nMaxRange, uint32_t nSingleStep, uint32_t nSetValue = 0, bool bUseSetValue = false);
 
+	bool isServoRunning();
+	void setCurrentGuardDelayActive();
+	void setCurrentGuardDelayInactive();
 
 private:
 	ServoData *m_pServoData = nullptr;
@@ -74,14 +79,42 @@ private:
 	CServoModel *m_pServoModel;
 	CADC m_adc;
 
+	//Calibration
+	uint8_t m_lastCalibrationStep = static_cast<uint8_t>(CBlindCalibrate::CalibrationStep::Idle);
+	bool m_bCalibrationStepReady = false;
 
-	int32_t m_nTargetEncoderValue;
+	//Initial position
+	uint8_t m_nItialPositionStep = 0;
+
+
+
+
+
+	int16_t m_nTargetEncoderValue = 0;
 	uint8_t m_nLastOpenPercentValue = 0;
 
 	uint16_t m_sTimeout = 100;			//Timeout 500ms
 
-	bool m_bCalibrationStepReady = false;
-	bool m_nCurrentError = false;
+
+
+	bool m_nCurrentGuardError = false;
+
+	//For timer
+	unsigned long m_lTime = 0;
+	unsigned long m_nTimeoutValue = 500;
+	WindowData::Direction m_lastDirection = WindowData::Direction::Stop;
+	WindowData::Direction m_currentDirection = WindowData::Direction::Stop;
+	WindowData::Direction m_lastDirectionCurrentGuard = WindowData::Direction::Stop;
+	uint8_t m_nSpeed = 0;
+
+
+	bool m_bCurrentGuardMeasureDelay = true;
+	bool m_bBlockModelOperations = false;
+
+	bool m_bIsRunning = false;
+
+	//bool m_bInitialPosition = false;
+	//uint8_t m_nInitStep = 0;
 
 };
 

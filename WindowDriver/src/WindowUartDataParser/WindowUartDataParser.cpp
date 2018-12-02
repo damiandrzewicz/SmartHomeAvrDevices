@@ -195,7 +195,13 @@ bool CWindowUartDataParser::parseSetBlindMetadata(CBlindMetadata &refBlindMetada
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
 	//refBlindMetadata.setBlindVisibility(static_cast<WindowData::Visibility>(atoi(cTemp)));
-	refBlindMetadata.getBlindMetadataObject().visibility = static_cast<WindowData::Visibility>(atoi(cTemp));
+	refBlindMetadata.visibility = static_cast<WindowData::Visibility>(atoi(cTemp));
+
+	//Get motor side
+	cTemp = m_pTokenParser->getNextToken();
+	if(cTemp == nullptr || !strcmp(cTemp, ""))
+		return false;
+	refBlindMetadata.getBlindMetadataObject().motorSide = static_cast<WindowData::MotorSide>(atoi(cTemp));
 
 	return true;
 }
@@ -258,7 +264,7 @@ bool CWindowUartDataParser::parseSetCalibrate(CBlindCalibrate &refBlindCalibrate
 	char *cTemp = m_pTokenParser->getNextToken();
 	if(cTemp == nullptr || !strcmp(cTemp, ""))
 		return false;
-	refBlindCalibrate.setCalibrateStep( static_cast<CBlindCalibrate::CalibrationStep>(atoi(cTemp)));
+	refBlindCalibrate.setCalibrateStep( static_cast<uint8_t>(atoi(cTemp)));
 
 	return true;
 }
@@ -285,7 +291,11 @@ bool CWindowUartDataParser::createGetBlindMetadataContext(CBlindMetadata &refBli
 //	CUart::getInstance()->puts(pResult);
 //	CUart::getInstance()->puts("[1]\r\n");
 
-	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().visibility), cTemp, 10);
+	itoa(static_cast<uint8_t>(refBlindMetadata.visibility), cTemp, 10);
+	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
+	strcat(pResult, cTemp);
+
+	itoa(static_cast<uint8_t>(refBlindMetadata.getBlindMetadataObject().motorSide), cTemp, 10);
 	strcat(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
@@ -313,7 +323,7 @@ bool CWindowUartDataParser::createGetBlindStateContext(CBlindState &refBlindStat
 	char cTemp[4];
 
 	//Open percent
-	itoa(static_cast<uint8_t>(refBlindState.getOpenPercent()), cTemp, 10);
+	itoa(static_cast<uint8_t>(refBlindState.getOpenPercent().getValue()), cTemp, 10);
 	strcpy(pResult, getAdditionalText(AdditionalTexts::Dollar));
 	strcat(pResult, cTemp);
 
